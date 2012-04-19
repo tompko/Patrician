@@ -1,6 +1,16 @@
+# SCons files #
+###############
 .sconsign.dblite
+.sconf_temp
+config.log
+
+# temp files  #
+###############
 *.swp
+*~
+
+# build files #
+###############
 bin
 obj
 test_obj
-*~

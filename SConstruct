@@ -18,11 +18,14 @@ main_build = ['obj/' + p for p in itertools.chain(common_files, main_files)]
 env.Program(target='bin/Patrician', source=create_objs(env, main_build))
 
 test_env = Environment(CCFLAGS='-std=c99', CPPPATH="src")
+test_conf = Configure(test_env)
+
 test_env.VariantDir(variant_dir='test_obj', src_dir='test', duplicate=False)
 test_env.VariantDir(variant_dir='test_obj/obj', src_dir='src', duplicate=False)
 
 test_build = ['test_obj/' + p for p in test_files] +\
              ['test_obj/obj/' + p for p in common_files]
 
-test_env.Program(target='bin/test_suite', source=create_objs(test_env, test_build),
+if test_conf.CheckLibWithHeader('check', 'check.h', 'c'):
+    test_env.Program(target='bin/test_suite', source=create_objs(test_env, test_build),
             LIBS=test_libs, LIBPATH=lib_path)
