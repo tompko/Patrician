@@ -14,3 +14,4 @@ config.log
 bin
 obj
 *.pyc
+test/test.c
