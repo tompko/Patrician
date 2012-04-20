@@ -10,13 +10,11 @@ typedef struct
 
 void help(char * input);
 
-Command* userCommands = NULL;
-static const int numCommands = 2;
+#define NUM_COMMANDS (2)
+Command userCommands[NUM_COMMANDS];
 
 void initCommands()
 {
-	userCommands = (Command*)malloc(sizeof(Command)*numCommands);
-	
 	userCommands[0].command="help";
 	userCommands[0].helpString="Print all available commands";
 	userCommands[0].function=help;
@@ -51,7 +49,7 @@ void main(void)
 			break;
 		}
 
-		for(i = 0; i < numCommands; ++i)
+		for(i = 0; i < NUM_COMMANDS; ++i)
 		{
 			char* spaceLoc = strchr(input, ' ');
 			if(spaceLoc)
@@ -82,7 +80,8 @@ void main(void)
 void help(char * input)
 {
 	int i;
-	for(i = 0; i < numCommands; ++i)
+
+	for(i = 0; i < NUM_COMMANDS; ++i)
 	{
 		printf("%s\t%s\n", userCommands[i].command, userCommands[i].helpString);
 	}
