@@ -5,7 +5,6 @@ from build import create_objs
 
 Import('common_files')
 test_files=  ['test.c']
-
 test_libs = ['libcheck']
 lib_path = ['/usr/lib', '/usr/local/lib']
 
@@ -13,12 +12,7 @@ lib_path = ['/usr/lib', '/usr/local/lib']
 test_headers = [os.path.split(g)[1] for g in glob.glob("../test/test_*.h")]
 test_names = [h.replace("test_", "").replace(".h", "") for h in test_headers]
 
-print "Test names:"
-print test_names
-
 include_files = [os.path.split(g)[1] for g in glob.glob("../src/*.h")]
-print "Include files:"
-print include_files
 
 test_script = """#include <stdio.h>
 #include <stdlib.h>
