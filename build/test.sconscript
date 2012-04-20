@@ -1,0 +1,20 @@
+from build import create_objs
+
+Import('common_files')
+test_files=  ['test.c']
+
+test_libs = ['libcheck']
+lib_path = ['/usr/lib', '/usr/local/lib']
+
+test_env = Environment(CCFLAGS='-std=c99', CPPPATH="#src")
+test_conf = Configure(test_env)
+
+test_env.VariantDir(variant_dir='#obj/test', src_dir='#test', duplicate=False)
+test_env.VariantDir(variant_dir='#obj/test_main', src_dir='#src', duplicate=False)
+
+test_build = ['#obj/test/' + p for p in test_files] +\
+             ['#obj/test_main/' + p for p in common_files]
+
+if test_conf.CheckLibWithHeader('check', 'check.h', 'c'):
+    test_env.Program(target='#bin/test_suite', source=create_objs(test_env, test_build),
+            LIBS=test_libs, LIBPATH=lib_path)

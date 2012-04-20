@@ -1,0 +1,12 @@
+import itertools
+from build import create_objs
+
+Import('common_files')
+main_files = ['main.c']
+
+env = Environment(CCFLAGS='-std=c99')
+env.VariantDir(variant_dir='#obj/main', src_dir='#src', duplicate=False)
+
+main_build = ['#obj/main/' + p for p in itertools.chain(common_files, main_files)]
+
+env.Program(target='#bin/Patrician', source=create_objs(env, main_build))

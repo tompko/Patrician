@@ -13,4 +13,4 @@ config.log
 ###############
 bin
 obj
-test_obj
+*.pyc
