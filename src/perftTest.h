@@ -4,7 +4,7 @@
 typedef struct
 {
     char * FEN;
-    unsigned int perfts[6];
+    int perfts[6];
 } PerftTest;
 
 #define NUM_PERFT_TESTS (126)
