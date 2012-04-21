@@ -16,7 +16,7 @@ MoveNode* generate_moves(Board* board);
 void make_move(Board* board, Move move);
 void unmake_move(Board* board, Move move);
 
-void print_move(char* buffer, Move move);
+void sprint_move(char* buffer, Move move);
 
 /* Perft debugging */
 int perft(Game* game, int level);

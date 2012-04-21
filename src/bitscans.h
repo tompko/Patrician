@@ -15,9 +15,16 @@ __inline unsigned int bit_scan_forward(unsigned long long mask)
 	_BitScanForward64(&index, mask);
 	return index;
 }
+#else
+
+static inline unsigned int bit_scan_forward(unsigned long long mask)
+{
+    return __builtin_ffsll(mask) - 1;
+}
+
 #endif
 
-__inline int population(unsigned long long mask)
+static inline int population(unsigned long long mask)
 {
 	int count = 0;
 	for (; mask; ++count)
@@ -27,12 +34,12 @@ __inline int population(unsigned long long mask)
 	return count;
 }
 
-__inline unsigned long long lsb(unsigned long long mask)
+static inline unsigned long long lsb(unsigned long long mask)
 {
 	return mask & -mask;
 }
 
-__inline unsigned long long clear_lsb(unsigned long long mask)
+static inline unsigned long long clear_lsb(unsigned long long mask)
 {
 	return mask & (mask - 1);
 }

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 
@@ -15,8 +16,14 @@ typedef struct
 
 void help(const char * input);
 void test_perft(const char* input);
+void set_fen(const char * input);
+void run_perft(const char * input);
+void run_divide(const char* input);
+void display(const char* input);
 
-#define NUM_COMMANDS (3)
+Game g_Game;
+
+#define NUM_COMMANDS (7)
 Command userCommands[NUM_COMMANDS];
 
 void initCommands()
@@ -29,12 +36,28 @@ void initCommands()
 	userCommands[1].helpString = "Run the perft test suite on the move generator";
 	userCommands[1].function = test_perft;
 
-	userCommands[2].command = "quit";
-	userCommands[2].helpString = "Quit Patrician";
-	userCommands[2].function = 0;
+	userCommands[2].command = "fen";
+	userCommands[2].helpString = "Set the current position from the given FEN";
+	userCommands[2].function = set_fen;
+
+	userCommands[3].command = "perft";
+	userCommands[3].helpString = "Count the number of nodes at a given depth";
+	userCommands[3].function = run_perft;
+
+	userCommands[4].command = "divide";
+	userCommands[4].helpString = "Show the number of nodes per child move";
+	userCommands[4].function = run_divide;
+
+	userCommands[5].command = "display";
+	userCommands[5].helpString = "Display the current board";
+	userCommands[5].function = display;
+
+	userCommands[6].command = "quit";
+	userCommands[6].helpString = "Quit Patrician";
+	userCommands[6].function = 0;
 }
 
-void main(void)
+int main(void)
 {
 	char input[512] = "";
 
@@ -62,7 +85,8 @@ void main(void)
 		for(i = 0; i < NUM_COMMANDS; ++i)
 		{
 			char* spaceLoc = strchr(input, ' ');
-			if(spaceLoc)
+
+			if(spaceLoc && spaceLoc - input == strlen(userCommands[i].command))
 			{
 				if(!strncmp(input, userCommands[i].command, spaceLoc - input))
 				{
@@ -85,6 +109,8 @@ void main(void)
 			printf("Unrecognised command: %s\n", input);
 		}	
 	}
+
+	return 0;
 }
 
 void help(const char* input)
@@ -128,4 +154,30 @@ void test_perft(const char* input)
 			}
 		}
 	}
+}
+
+void set_fen(const char * input)
+{
+	set_game_from_FEN(&g_Game, input);
+}
+
+void run_perft(const char * input)
+{
+	int level = atoi(input);
+
+	int result = perft(&g_Game, level);
+
+	printf("perft %i: %i\n", level, result);
+}
+
+void run_divide(const char* input)
+{
+	int level = atoi(input);
+
+	divide(&g_Game, level);
+}
+
+void display(const char* input)
+{
+	print_board(&g_Game.board);
 }

@@ -25,16 +25,14 @@ typedef struct MoveNode
 
 #define DEFAULT_NUM_CHILDREN (30)
 
-__inline void init_move_node(MoveNode* movenode)
+static inline void init_move_node(MoveNode* movenode)
 {
-	int i;
-
 	movenode->children = (MoveNode*)malloc(sizeof(MoveNode)*DEFAULT_NUM_CHILDREN);
 	movenode->numChildren = 0;
 	movenode->maxChildren = DEFAULT_NUM_CHILDREN;
 }
 
-__inline void add_move(MoveNode* movenode, Move move)
+static inline void add_move(MoveNode* movenode, Move move)
 {
 	if (movenode->numChildren == movenode->maxChildren)
 	{

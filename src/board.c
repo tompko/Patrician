@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 char * strSquare[] = {
 "A1","B1","C1","D1","E1","F1","G1","H1",
@@ -122,30 +123,30 @@ int set_from_FEN(Board* board, const char* FEN)
 	}
     ++FEN;
 
-    board->white = board->pieces[WHITE_PAWN];
-    board->white |= board->pieces[WHITE_KNIGHT];
-    board->white |= board->pieces[WHITE_BISHOP];
-    board->white |= board->pieces[WHITE_ROOK];
-    board->white |= board->pieces[WHITE_QUEEN];
-    board->white |= board->pieces[WHITE_KING];
+    board->sides[WHITE] = board->pieces[WHITE_PAWN];
+    board->sides[WHITE] |= board->pieces[WHITE_KNIGHT];
+    board->sides[WHITE] |= board->pieces[WHITE_BISHOP];
+    board->sides[WHITE] |= board->pieces[WHITE_ROOK];
+    board->sides[WHITE] |= board->pieces[WHITE_QUEEN];
+    board->sides[WHITE] |= board->pieces[WHITE_KING];
 
-    board->black = board->pieces[BLACK_PAWN];
-    board->black |= board->pieces[BLACK_KNIGHT];
-    board->black |= board->pieces[BLACK_BISHOP];
-    board->black |= board->pieces[BLACK_ROOK];
-    board->black |= board->pieces[BLACK_QUEEN];
-    board->black |= board->pieces[BLACK_KING];
+    board->sides[BLACK] = board->pieces[BLACK_PAWN];
+    board->sides[BLACK] |= board->pieces[BLACK_KNIGHT];
+    board->sides[BLACK] |= board->pieces[BLACK_BISHOP];
+    board->sides[BLACK] |= board->pieces[BLACK_ROOK];
+    board->sides[BLACK] |= board->pieces[BLACK_QUEEN];
+    board->sides[BLACK] |= board->pieces[BLACK_KING];
 
-    board->occupied = board->white | board->black;
+    board->occupied = board->sides[WHITE] | board->sides[BLACK];
     board->empty = ~board->empty;
 
     if (*FEN == 'w')
     {
-        board->whiteMove = 1;
+        board->sideToMove = WHITE;
     }
     else if (*FEN == 'b')
     {
-        board->whiteMove = 0;
+        board->sideToMove = BLACK;
     }
     else
     {
@@ -204,4 +205,41 @@ int set_from_FEN(Board* board, const char* FEN)
     board->move = atoi(FEN);
 
     return 1;
+}
+
+void print_board(Board* board)
+{
+    int i, rank, file;
+    char strBoard[64];
+
+    for (i = 0; i < 64; ++i)
+    {
+        strBoard[i] = '.';
+    }
+
+    for (rank = 0; rank < 8; ++rank)
+    {
+        for (file = 0; file < 8; ++file)
+        {
+            if (board->pieces[WHITE_PAWN] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'P';
+            }
+            if (board->pieces[BLACK_PAWN] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'p';
+            }
+        }
+    }
+
+    for (int i = 0; i < 64; ++i)
+    {
+        if (i % 8 == 0)
+        {
+            printf("\n");
+        }
+        printf("%c", strBoard[i]);
+    }
+
+    printf("\n");
 }

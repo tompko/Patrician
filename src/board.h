@@ -33,6 +33,13 @@ enum Pieces
 	NUM_PIECES
 };
 
+enum Colours
+{
+    BLACK,
+    WHITE,
+    NUM_COLOURS
+};
+
 enum Castling
 {
     WHITE_KINGSIDE,
@@ -44,12 +51,11 @@ enum Castling
 typedef struct
 {
 	bitboard pieces[NUM_PIECES];   //One bitboard for each piece type
-	bitboard white;                //Combination of all white piece bitboards
-	bitboard black;                //Combination of all black piece bitboards
+	bitboard sides[NUM_COLOURS];   //Occupancy per side
 	bitboard empty;                //All empty squares
 	bitboard occupied;             //All occupied squares
 
-    unsigned char whiteMove;        //non-zero if white has the next move
+    unsigned char sideToMove;       //which side has the next move
     unsigned int castling;          //Castling availability
     bitboard enPassant;             //The square to capture on if available
     unsigned int halfmove;          //The number of half moves since the last capture or pawn move
@@ -57,5 +63,7 @@ typedef struct
 } Board;
 
 int set_from_FEN(Board* board, const char* FEN);
+
+void print_board(Board* board);
 
 #endif

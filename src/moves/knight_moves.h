@@ -1,7 +1,7 @@
 #ifndef KNIGHT_MOVES
 #define KNIGHT_MOVES
 
-#include "board.h"
+#include "../board.h"
 
 bitboard knight_moves[64] = {
 	0x0000000000020400,

@@ -39,7 +39,7 @@ START_TEST(test_set_from_FEN)
     fail_if((board->pieces[BLACK_PAWN] & (1ULL << G7)) == 0);
     fail_if((board->pieces[BLACK_PAWN] & (1ULL << H7)) == 0);
 
-    fail_if(board->whiteMove == 0);
+    fail_if(board->sideToMove == 0);
     fail_if((board->castling & (1u << WHITE_KINGSIDE)) == 0);
     fail_if((board->castling & (1u << WHITE_QUEENSIDE)) == 0);
     fail_if((board->castling & (1u << BLACK_KINGSIDE)) == 0);

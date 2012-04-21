@@ -1,9 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "game.h"
 #include "bitscans.h"
 
-#include "moves\knight_moves.h"
+#include "moves/knight_moves.h"
 
 int board_perft(Board* board, MoveNode* moves, int level);
 
@@ -30,7 +31,7 @@ MoveNode* generate_moves(Board* board)
 
 	init_move_node(ret);
 
-	if (board->whiteMove)
+	if (board->sideToMove == WHITE)
 	{
 		generate_white_moves(board, ret);
 	}
@@ -51,16 +52,16 @@ void make_move(Board* board, Move move)
 	board->pieces[move.piece] ^= fromToBB;
 	if (move.piece < BLACK_PAWN)
 	{
-		board->white ^= fromToBB;
+		board->sides[WHITE] ^= fromToBB;
 	}
 	else
 	{
-		board->black ^= fromToBB;
+		board->sides[BLACK] ^= fromToBB;
 	}
 	board->occupied ^= fromToBB;
 	board->empty ^= fromToBB;
 
-	board->whiteMove = 1 - board->whiteMove;
+	board->sideToMove = 1 - board->sideToMove;
 }
 
 void unmake_move(Board* board, Move move)
@@ -72,19 +73,19 @@ void unmake_move(Board* board, Move move)
 	board->pieces[move.piece] ^= fromToBB;
 	if (move.piece < BLACK_PAWN)
 	{
-		board->white ^= fromToBB;
+		board->sides[WHITE] ^= fromToBB;
 	}
 	else
 	{
-		board->black ^= fromToBB;
+		board->sides[BLACK] ^= fromToBB;
 	}
 	board->occupied ^= fromToBB;
 	board->empty ^= fromToBB;
 
-	board->whiteMove = 1 - board->whiteMove;
+	board->sideToMove = 1 - board->sideToMove;
 }
 
-void print_move(char* buffer, Move move)
+void sprint_move(char* buffer, Move move)
 {
 	sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
 }
@@ -121,7 +122,7 @@ void divide(Game* game, int level)
     	numMoves = board_perft(&game->board, &game->moves.children[i], level - 1);
     	unmake_move(&game->board, game->moves.children[i].move);
 
-    	print_move(moveString, game->moves.children[i].move);
+    	sprint_move(moveString, game->moves.children[i].move);
     	printf("%s: %i\n", moveString, numMoves);
     }
 }
@@ -197,7 +198,7 @@ void generate_white_knights(Board* board, MoveNode* movenode)
 	while(allKnights)
 	{
 		int knightSquare = bit_scan_forward(allKnights);
-		bitboard allMoves = knight_moves[knightSquare] & ~board->white;
+		bitboard allMoves = knight_moves[knightSquare] & ~board->sides[WHITE];
 
 		while(allMoves)
 		{
@@ -247,7 +248,7 @@ void generate_black_knights(Board* board, MoveNode* movenode)
 	while(allKnights)
 	{
 		int knightSquare = bit_scan_forward(allKnights);
-		bitboard allMoves = knight_moves[knightSquare] & ~board->black;
+		bitboard allMoves = knight_moves[knightSquare] & ~board->sides[BLACK];
 
 		while(allMoves)
 		{
@@ -261,7 +262,6 @@ void generate_black_knights(Board* board, MoveNode* movenode)
 
 			allMoves = clear_lsb(allMoves);
 		}
-
 		allKnights = clear_lsb(allKnights);
 	}
 }
