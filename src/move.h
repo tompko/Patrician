@@ -5,6 +5,7 @@ typedef struct
 {
     unsigned int to: 6;
     unsigned int from: 6;
+    unsigned int piece: 4;
     unsigned int flags: 4;
     unsigned int capturedPiece: 4;
 } Move;
