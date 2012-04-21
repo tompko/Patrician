@@ -111,6 +111,23 @@ int set_from_FEN(Board* board, const char* FEN)
 	}
     ++FEN;
 
+    board->white = board->pieces[WHITE_PAWN];
+    board->white |= board->pieces[WHITE_KNIGHT];
+    board->white |= board->pieces[WHITE_BISHOP];
+    board->white |= board->pieces[WHITE_ROOK];
+    board->white |= board->pieces[WHITE_QUEEN];
+    board->white |= board->pieces[WHITE_KING];
+
+    board->black = board->pieces[BLACK_PAWN];
+    board->black |= board->pieces[BLACK_KNIGHT];
+    board->black |= board->pieces[BLACK_BISHOP];
+    board->black |= board->pieces[BLACK_ROOK];
+    board->black |= board->pieces[BLACK_QUEEN];
+    board->black |= board->pieces[BLACK_KING];
+
+    board->occupied = board->white | board->black;
+    board->empty = ~board->empty;
+
     if (*FEN == 'w')
     {
         board->whiteMove = 1;

@@ -7,12 +7,14 @@
 typedef struct
 {
     Board board;
-    Move* moves;
-    unsigned int numMoves;
-    unsigned int maxMoves;
+    MoveNode moves;
 } Game;
 
 int set_game_from_FEN(Game* game, const char* FEN);
+
+MoveNode* generate_moves(Board* board);
+void make_move(Board* board, Move move);
+void unmake_move(Board* board, Move move);
 
 /* Perft debugging */
 int perft(Game* game, int level);

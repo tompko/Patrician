@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 
 #include "perftTest.h"
 #include "game.h"
+#include "bitscans.h"
 
 typedef struct
 {
@@ -45,6 +47,10 @@ void main(void)
 	printf("\n");
 
 	initCommands();
+
+	test_perft("");
+
+	return;
 
 	for(;;)
 	{
