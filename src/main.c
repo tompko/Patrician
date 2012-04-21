@@ -20,10 +20,11 @@ void set_fen(const char * input);
 void run_perft(const char * input);
 void run_divide(const char* input);
 void display(const char* input);
+void new_game(const char* input);
 
 Game g_Game;
 
-#define NUM_COMMANDS (7)
+#define NUM_COMMANDS (8)
 Command userCommands[NUM_COMMANDS];
 
 void initCommands()
@@ -52,9 +53,13 @@ void initCommands()
 	userCommands[5].helpString = "Display the current board";
 	userCommands[5].function = display;
 
-	userCommands[6].command = "quit";
-	userCommands[6].helpString = "Quit Patrician";
-	userCommands[6].function = 0;
+	userCommands[6].command = "new";
+	userCommands[6].helpString = "Start a new game";
+	userCommands[6].function = new_game;
+
+	userCommands[7].command = "quit";
+	userCommands[7].helpString = "Quit Patrician";
+	userCommands[7].function = 0;
 }
 
 int main(void)
@@ -180,4 +185,9 @@ void run_divide(const char* input)
 void display(const char* input)
 {
 	print_board(&g_Game.board);
+}
+
+void new_game(const char* input)
+{
+	set_game_from_FEN(&g_Game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
