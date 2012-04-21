@@ -84,6 +84,11 @@ void unmake_move(Board* board, Move move)
 	board->whiteMove = 1 - board->whiteMove;
 }
 
+void print_move(char* buffer, Move move)
+{
+	sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
+}
+
 int perft(Game* game, int level)
 {
     return board_perft(&game->board, &game->moves, level);
@@ -91,7 +96,34 @@ int perft(Game* game, int level)
 
 void divide(Game* game, int level)
 {
-    
+	int i;
+
+    if (level <= 0)
+    {
+    	return;
+    }
+
+    if (!game->moves.children)
+    {
+		MoveNode* genMoves = generate_moves(&game->board);
+		game->moves.children = genMoves->children;
+		game->moves.numChildren = genMoves->numChildren;
+		game->moves.maxChildren = genMoves->maxChildren;
+		free(genMoves);
+    }
+
+    for (i = 0; i < game->moves.numChildren; ++i)
+    {
+    	int numMoves = 0;
+    	char moveString[8];
+
+    	make_move(&game->board, game->moves.children[i].move);
+    	numMoves = board_perft(&game->board, &game->moves.children[i], level - 1);
+    	unmake_move(&game->board, game->moves.children[i].move);
+
+    	print_move(moveString, game->moves.children[i].move);
+    	printf("%s: %i\n", moveString, numMoves);
+    }
 }
 
 int board_perft(Board* board, MoveNode* moves, int level)
@@ -99,7 +131,7 @@ int board_perft(Board* board, MoveNode* moves, int level)
 	int i;
 	int perft = 0;
 
-	if (level == 0)
+	if (level <= 0)
 	{
 		return 1;
 	}
@@ -188,7 +220,7 @@ void generate_white_knights(Board* board, MoveNode* movenode)
 void generate_black_pawns(Board* board, MoveNode* movenode)
 {
 	bitboard allPawns = board->pieces[BLACK_PAWN];
-	
+
 	while(allPawns)
 	{
 		Move move;
