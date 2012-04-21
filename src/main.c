@@ -48,10 +48,6 @@ void main(void)
 
 	initCommands();
 
-	test_perft("");
-
-	return;
-
 	for(;;)
 	{
 		int validCommand = 0;
