@@ -3,7 +3,7 @@
 
 #include "../board.h"
 
-bitboard knight_moves[64] = {
+bitboard knightMoves[64] = {
 	0x0000000000020400,
 	0x0000000000050800,
 	0x00000000000a1100,

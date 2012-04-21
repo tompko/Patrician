@@ -22,6 +22,10 @@ static inline unsigned int bit_scan_forward(unsigned long long mask)
     return __builtin_ffsll(mask) - 1;
 }
 
+static inline unsigned int bit_scan_reverse(unsigned long long mask)
+{
+    return 63 - __builtin_clzll(mask);
+}
 #endif
 
 static inline int population(unsigned long long mask)
