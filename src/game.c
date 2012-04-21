@@ -12,11 +12,11 @@ void generate_white_moves(Board* board, MoveNode* movenode);
 void generate_black_moves(Board* board, MoveNode* movenode);
 
 void generate_white_pawns(Board* board, MoveNode* movenode);
-void generate_white_knights(Board* board, MoveNode* movenode);
 
 void generate_black_pawns(Board* board, MoveNode* movenode);
-void generate_black_knights(Board* board, MoveNode* movenode);
 
+void generate_knights(Board* board, MoveNode* movenode,
+					  int piece, int mySide, int theirSide);
 int set_game_from_FEN(Game* game, const char* FEN)
 {
     int ret = set_from_FEN(&game->board, FEN);
@@ -159,13 +159,13 @@ int board_perft(Board* board, MoveNode* moves, int level)
 void generate_white_moves(Board* board, MoveNode* movenode)
 {
 	generate_white_pawns(board, movenode);
-	generate_white_knights(board, movenode);
+	generate_knights(board, movenode, WHITE_KNIGHT, WHITE, BLACK);
 }
 
 void generate_black_moves(Board* board, MoveNode* movenode)
 {
 	generate_black_pawns(board, movenode);
-	generate_black_knights(board, movenode);
+	generate_knights(board, movenode, BLACK_KNIGHT, BLACK, WHITE);
 }
 
 void generate_white_pawns(Board* board, MoveNode* movenode)
@@ -188,32 +188,6 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 		add_move(movenode, move);
 
 		allPawns = clear_lsb(allPawns);
-	}
-}
-
-void generate_white_knights(Board* board, MoveNode* movenode)
-{
-	bitboard allKnights = board->pieces[WHITE_KNIGHT];
-
-	while(allKnights)
-	{
-		int knightSquare = bit_scan_forward(allKnights);
-		bitboard allMoves = knight_moves[knightSquare] & ~board->sides[WHITE];
-
-		while(allMoves)
-		{
-			Move move;
-
-			move.from = knightSquare;
-			move.to = bit_scan_forward(allMoves);
-			move.flags = 0;
-			move.piece = WHITE_KNIGHT;
-			add_move(movenode, move);
-
-			allMoves = clear_lsb(allMoves);
-		}
-
-		allKnights = clear_lsb(allKnights);
 	}
 }
 
@@ -241,14 +215,15 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 	}
 }
 
-void generate_black_knights(Board* board, MoveNode* movenode)
+void generate_knights(Board* board, MoveNode* movenode,
+					  int piece, int mySide, int theirSide)
 {
-	bitboard allKnights = board->pieces[BLACK_KNIGHT];
+	bitboard allKnights = board->pieces[piece];
 
 	while(allKnights)
 	{
 		int knightSquare = bit_scan_forward(allKnights);
-		bitboard allMoves = knight_moves[knightSquare] & ~board->sides[BLACK];
+		bitboard allMoves = knight_moves[knightSquare] & ~board->sides[mySide];
 
 		while(allMoves)
 		{
@@ -257,11 +232,11 @@ void generate_black_knights(Board* board, MoveNode* movenode)
 			move.from = knightSquare;
 			move.to = bit_scan_forward(allMoves);
 			move.flags = 0;
-			move.piece = BLACK_KNIGHT;
+			move.piece = piece;
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
 		}
 		allKnights = clear_lsb(allKnights);
-	}
+	}	
 }
