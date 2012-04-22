@@ -108,8 +108,16 @@ int main(void)
 				}
 			}
 		}
-		
-		if (!validCommand)
+
+		if(is_move(input))
+		{
+			printf("Making move %s\n", input);
+			make_move_str(&g_Game.board, input);
+			g_Game.moves.children = NULL;
+			g_Game.moves.numChildren = 0;
+			g_Game.moves.maxChildren = 0;
+		}
+		else if (!validCommand)
 		{
 			printf("Unrecognised command: %s\n", input);
 		}	

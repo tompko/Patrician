@@ -211,6 +211,61 @@ void print_board(Board* board)
 {
     int i, rank, file;
     char strBoard[64];
+    char occupiedBoard[64];
+
+    for (i = 0; i < 64; ++i)
+    {
+        strBoard[i] = '.';
+        occupiedBoard[i] = '.';
+
+        if (board->occupied & (1ull << i))
+        {
+            occupiedBoard[i] = '#';
+        }
+    }
+
+    for (rank = 0; rank < 8; ++rank)
+    {
+        for (file = 0; file < 8; ++file)
+        {
+            if (board->pieces[BLACK_PAWN] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'p';
+            }
+            if (board->pieces[BLACK_ROOK] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'r';
+            }
+            if (board->pieces[BLACK_KNIGHT] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'n';
+            }
+            if (board->pieces[BLACK_BISHOP] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'b';
+            }
+            if (board->pieces[BLACK_QUEEN] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'q';
+            }
+            if (board->pieces[BLACK_KING] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'k';
+            }
+
+        }
+    }
+
+    for (int i = 0; i < 64; ++i)
+    {
+        if (i % 8 == 0)
+        {
+            printf("\n");
+        }
+        printf("%c", strBoard[i]);
+    }
+
+    printf("\n");
 
     for (i = 0; i < 64; ++i)
     {
@@ -225,10 +280,27 @@ void print_board(Board* board)
             {
                 strBoard[(7-rank)*8 + file] = 'P';
             }
-            if (board->pieces[BLACK_PAWN] & (1ull << (rank*8 + file)))
+            if (board->pieces[WHITE_ROOK] & (1ull << (rank*8 + file)))
             {
-                strBoard[(7-rank)*8 + file] = 'p';
+                strBoard[(7-rank)*8 + file] = 'R';
             }
+            if (board->pieces[WHITE_KNIGHT] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'N';
+            }
+            if (board->pieces[WHITE_BISHOP] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'B';
+            }
+            if (board->pieces[WHITE_QUEEN] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'Q';
+            }
+            if (board->pieces[WHITE_KING] & (1ull << (rank*8 + file)))
+            {
+                strBoard[(7-rank)*8 + file] = 'K';
+            }
+
         }
     }
 
@@ -241,5 +313,27 @@ void print_board(Board* board)
         printf("%c", strBoard[i]);
     }
 
+    for (int i = 0; i < 64; ++i)
+    {
+        if (i % 8 == 0)
+        {
+            printf("\n");
+        }
+        printf("%c", occupiedBoard[i]);
+    }
+
     printf("\n");
+
+    if (board->sideToMove == WHITE)
+    {
+        printf("White to move\n");
+    }
+    else if (board->sideToMove == BLACK)
+    {
+        printf("Black to move\n");
+    }
+    else
+    {
+        printf("Don't know who to move\n");
+    }
 }
