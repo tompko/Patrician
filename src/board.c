@@ -138,7 +138,7 @@ int set_from_FEN(Board* board, const char* FEN)
     board->sides[BLACK] |= board->pieces[BLACK_KING];
 
     board->occupied = board->sides[WHITE] | board->sides[BLACK];
-    board->empty = ~board->empty;
+    board->empty = ~board->occupied;
 
     if (*FEN == 'w')
     {

@@ -27,17 +27,49 @@ typedef struct MoveNode
 
 static inline void init_move_node(MoveNode* movenode)
 {
+    int i = 0;
+
 	movenode->children = (MoveNode*)malloc(sizeof(MoveNode)*DEFAULT_NUM_CHILDREN);
 	movenode->numChildren = 0;
 	movenode->maxChildren = DEFAULT_NUM_CHILDREN;
+
+    for (i = 0; i < DEFAULT_NUM_CHILDREN; ++i)
+    {
+        movenode->children[i].children = NULL;
+        movenode->children[i].numChildren = 0;
+        movenode->children[i].maxChildren = 0;
+    }
+}
+
+static inline void free_move_node(MoveNode* movenode)
+{
+    int i;
+    for (i = 0; i < movenode->maxChildren; ++i)
+    {
+        free_move_node(&movenode->children[i]);
+    }
+
+    free(movenode->children);
+    movenode->children = NULL;
+    movenode->numChildren = 0;
+    movenode->maxChildren = 0;
 }
 
 static inline void add_move(MoveNode* movenode, Move move)
 {
 	if (movenode->numChildren == movenode->maxChildren)
 	{
+        int i, start;
 		movenode->children = (MoveNode*)realloc(movenode->children, sizeof(MoveNode)*movenode->maxChildren*2);
+        start = movenode->maxChildren;
 		movenode->maxChildren *= 2;
+
+        for (i = start; i < movenode->maxChildren; ++i)
+        {
+            movenode->children[i].children = NULL;
+            movenode->children[i].numChildren = 0;
+            movenode->children[i].maxChildren = 0;
+        }
 	}
 
 	movenode->children[movenode->numChildren].move = move;

@@ -136,9 +136,12 @@ void help(const char* input)
 	}
 }
 
+static int maxPerftLevel = 1;
+
 void test_perft(const char* input)
 {
 	Game game;
+	game.moves.children = NULL;
 	int i, j;
 
 	initPerftTests();
@@ -148,7 +151,7 @@ void test_perft(const char* input)
 	{
 		printf("FEN: %s\n", perftTests[i].FEN);
 		set_game_from_FEN(&game, perftTests[i].FEN);
-		for (j = 0; j < 6; ++j)
+		for (j = 0; j < maxPerftLevel; ++j)
 		{
 			if (perftTests[i].perfts[j] >= 0)
 			{
@@ -166,6 +169,7 @@ void test_perft(const char* input)
 				}
 			}
 		}
+		free_move_node(&game.moves);
 	}
 }
 
