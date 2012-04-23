@@ -136,7 +136,7 @@ void help(const char* input)
 	}
 }
 
-static int maxPerftLevel = 1;
+static int maxPerftLevel = 2;
 
 void test_perft(const char* input)
 {
