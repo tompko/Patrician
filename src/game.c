@@ -10,6 +10,8 @@
 #include "moves/ray_attacks.h"
 #include "moves/king_moves.h"
 
+static int perftDepth = 0;
+
 int board_perft(Board* board, MoveNode* moves, int level);
 
 void generate_white_moves(Board* board, MoveNode* movenode);
@@ -222,6 +224,7 @@ void sprint_move(char* buffer, Move move)
 
 int perft(Game* game, int level)
 {
+	remove("perftLog.dat");
     return board_perft(&game->board, &game->moves, level);
 }
 
@@ -235,6 +238,8 @@ void divide(Game* game, int level)
     	return;
     }
 
+    remove("perftLog.dat")
+
     if (!game->moves.children)
     {
 		MoveNode* genMoves = generate_moves(&game->board);
@@ -246,14 +251,25 @@ void divide(Game* game, int level)
 
     for (i = 0; i < game->moves.numChildren; ++i)
     {
-    	int numMoves = 0;
-    	char moveString[8];
+    	int numMoves = 0, j;
+    	char moveString[8], fbuf[64];
+    	fbuf[0] = 0;
+    	for (j = 0; j < perftDepth; ++j)
+    	{
+    		strcat(fbuf, "\t");
+    	}
+    	sprint_move(moveString, game->moves.children[i].move);
+    	strcat(fbuf, moveString);
+		FILE* file = fopen("perftLog.dat", "a");
+    	fprintf(file, "%s\n", fbuf);
+    	fclose(file);
 
     	make_move(&game->board, &game->moves.children[i].move);
+    	perftDepth++;
     	numMoves = board_perft(&game->board, &game->moves.children[i], level - 1);
+    	perftDepth--;
     	unmake_move(&game->board, game->moves.children[i].move);
 
-    	sprint_move(moveString, game->moves.children[i].move);
     	totalMoves += numMoves;
     	printf("%s: %i\n", moveString, numMoves);
     }
@@ -284,11 +300,37 @@ int board_perft(Board* board, MoveNode* moves, int level)
 			if (board->sideToMove == WHITE && 
 				(board->pieces[BLACK_KING] & toBB))
 			{
+				int j;
+		    	char fbuf[64];
+
+		    	fbuf[0] = 0;
+		    	for (j = 0; j < perftDepth; ++j)
+		    	{
+		    		strcat(fbuf, "\t");
+		    	}
+		    	strcat(fbuf, "invalid");
+				FILE* file = fopen("perftLog.dat", "a");
+		    	fprintf(file, "%s\n", fbuf);
+		    	fclose(file);
+
 				return 0;
 			}
 			else if (board->sideToMove == BLACK &&
 				(board->pieces[WHITE_KING] & toBB))
 			{
+				int j;
+		    	char fbuf[64];
+
+		    	fbuf[0] = 0;
+		    	for (j = 0; j < perftDepth; ++j)
+		    	{
+		    		strcat(fbuf, "\t");
+		    	}
+		    	strcat(fbuf, "invalid");
+				FILE* file = fopen("perftLog.dat", "a");
+		    	fprintf(file, "%s\n", fbuf);
+		    	fclose(file);
+
 				return 0;
 			}
 		}
@@ -306,8 +348,25 @@ int board_perft(Board* board, MoveNode* moves, int level)
 
 	for (i = 0; i < moves->numChildren; ++i)
 	{
+		int numMoves = 0, j;
+    	char moveString[8], fbuf[64];
+
+    	fbuf[0] = 0;
+    	for (j = 0; j < perftDepth; ++j)
+    	{
+    		strcat(fbuf, "\t");
+    	}
+    	sprint_move(moveString, moves->children[i].move);
+    	strcat(fbuf, moveString);
+		FILE* file = fopen("perftLog.dat", "a");
+    	fprintf(file, "%s\n", fbuf);
+    	fclose(file);
+
 		make_move(board, &moves->children[i].move);
-		perft += board_perft(board, &moves->children[i], level - 1);
+		perftDepth++;
+		numMoves = board_perft(board, &moves->children[i], level - 1);
+		perft += numMoves;
+		perftDepth--;
 		unmake_move(board, moves->children[i].move);
 	}
 
@@ -439,7 +498,8 @@ void generate_knights(Board* board, MoveNode* movenode,
 	{
 		int knightSquare = bit_scan_forward(allKnights);
 		bitboard allMoves = knightMoves[knightSquare] & ~board->sides[mySide];
-
+		bitboard captures = allMoves & board->sides[theirSide];
+		allMoves &= ~captures;
 		while(allMoves)
 		{
 			Move move;
@@ -451,6 +511,18 @@ void generate_knights(Board* board, MoveNode* movenode,
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
+		}
+		while(captures)
+		{
+			Move move;
+
+			move.from = knightSquare;
+			move.to = bit_scan_forward(captures);
+			move.flags = CAPTURE_FLAG;
+			move.piece = piece;
+			add_move(movenode, move);
+
+			captures = clear_lsb(captures);
 		}
 		allKnights = clear_lsb(allKnights);
 	}	
@@ -464,8 +536,9 @@ void generate_rooks(Board* board, MoveNode* movenode,
 	while(allRooks)
 	{
 		int rookSquare = bit_scan_forward(allRooks);
-		bitboard allMoves = rook_attacks(board->occupied, rookSquare);
-		allMoves &= ~board->sides[mySide];
+		bitboard allMoves = rook_attacks(board->occupied, rookSquare) & ~board->sides[mySide];
+		bitboard captures = allMoves & board->sides[theirSide];
+		allMoves &= ~captures;
 
 		while(allMoves)
 		{
@@ -479,6 +552,18 @@ void generate_rooks(Board* board, MoveNode* movenode,
 
 			allMoves = clear_lsb(allMoves);
 		}
+		while(captures)
+		{
+			Move move;
+
+			move.from = rookSquare;
+			move.to = bit_scan_forward(captures);
+			move.flags = CAPTURE_FLAG;
+			move.piece = piece;
+			add_move(movenode, move);
+
+			captures = clear_lsb(captures);
+		}		
 		allRooks = clear_lsb(allRooks);
 	}
 }
@@ -491,8 +576,9 @@ void generate_bishops(Board* board, MoveNode* movenode,
 	while(allBishops)
 	{
 		int bishopSquare = bit_scan_forward(allBishops);
-		bitboard allMoves = bishop_attacks(board->occupied, bishopSquare);
-		allMoves &= ~board->sides[mySide];
+		bitboard allMoves = bishop_attacks(board->occupied, bishopSquare) & ~board->sides[mySide];
+		bitboard captures = allMoves & board->sides[theirSide];
+		allMoves &= ~captures;
 
 		while(allMoves)
 		{
@@ -506,6 +592,18 @@ void generate_bishops(Board* board, MoveNode* movenode,
 
 			allMoves = clear_lsb(allMoves);
 		}
+		while(captures)
+		{
+			Move move;
+
+			move.from = bishopSquare;
+			move.to = bit_scan_forward(captures);
+			move.flags = CAPTURE_FLAG;
+			move.piece = piece;
+			add_move(movenode, move);
+
+			captures = clear_lsb(captures);
+		}
 		allBishops = clear_lsb(allBishops);
 	}
 }
@@ -518,8 +616,9 @@ void generate_queens(Board* board, MoveNode* movenode,
 	while(allQueens)
 	{
 		int queenSquare = bit_scan_forward(allQueens);
-		bitboard allMoves = queen_attacks(board->occupied, queenSquare);
-		allMoves &= ~board->sides[mySide];
+		bitboard allMoves = queen_attacks(board->occupied, queenSquare) & ~board->sides[mySide];
+		bitboard captures = allMoves & board->sides[theirSide];
+		allMoves &= ~captures;
 
 		while(allMoves)
 		{
@@ -533,6 +632,18 @@ void generate_queens(Board* board, MoveNode* movenode,
 
 			allMoves = clear_lsb(allMoves);
 		}
+		while(captures)
+		{
+			Move move;
+
+			move.from = queenSquare;
+			move.to = bit_scan_forward(captures);
+			move.flags = CAPTURE_FLAG;
+			move.piece = piece;
+			add_move(movenode, move);
+
+			captures = clear_lsb(captures);
+		}
 		allQueens = clear_lsb(allQueens);
 	}
 }
@@ -542,6 +653,9 @@ void generate_king(Board* board, MoveNode* movenode,
 {
 	int kingSquare = bit_scan_forward(board->pieces[piece]);
 	bitboard allMoves = kingMoves[kingSquare] & ~board->sides[mySide];
+	bitboard captures = allMoves & theirSide;
+	allMoves &= ~captures;
+
 	Move move;
 	move.from = kingSquare;
 	move.flags = 0;
@@ -552,5 +666,12 @@ void generate_king(Board* board, MoveNode* movenode,
 		move.to = bit_scan_forward(allMoves);
 		add_move(movenode, move);
 		allMoves = clear_lsb(allMoves);
+	}
+	move.flags = CAPTURE_FLAG;
+	while(captures)
+	{
+		move.to = bit_scan_forward(captures);
+		add_move(movenode, move);
+		captures = clear_lsb(captures);
 	}
 }
