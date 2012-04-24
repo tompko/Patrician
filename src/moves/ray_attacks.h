@@ -2,6 +2,7 @@
 #define RAY_ATTACKS_H
 
 #include "../board.h"
+#include "../defines.h"
 
 enum Direction
 {
@@ -538,7 +539,7 @@ bitboard rayAttacks[8][64] = {
     0x0000000000000000},
 };
 
-static inline bitboard get_positive_ray_attacks(bitboard occupied, int dir,
+INLINE bitboard get_positive_ray_attacks(bitboard occupied, int dir,
     unsigned int square)
 {
     bitboard attacks = rayAttacks[dir][square];
@@ -547,7 +548,7 @@ static inline bitboard get_positive_ray_attacks(bitboard occupied, int dir,
     return attacks ^ rayAttacks[dir][square];
 }
 
-static inline bitboard get_negative_ray_attacks(bitboard occupied, int dir,
+INLINE bitboard get_negative_ray_attacks(bitboard occupied, int dir,
     unsigned int square)
 {
     bitboard attacks = rayAttacks[dir][square];
@@ -556,41 +557,41 @@ static inline bitboard get_negative_ray_attacks(bitboard occupied, int dir,
     return attacks ^ rayAttacks[dir][square];
 }
 
-static inline bitboard diagonal_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard diagonal_attacks(bitboard occupied, unsigned int square)
 {
     return get_positive_ray_attacks(occupied, NORTH_EAST, square)
          | get_negative_ray_attacks(occupied, SOUTH_WEST, square);
 }
  
-static inline bitboard antiDiag_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard antiDiag_attacks(bitboard occupied, unsigned int square)
 {
     return get_positive_ray_attacks(occupied, NORTH_WEST, square)
          | get_negative_ray_attacks(occupied, SOUTH_EAST, square);
 }
  
-static inline bitboard file_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard file_attacks(bitboard occupied, unsigned int square)
 {
     return get_positive_ray_attacks(occupied, NORTH, square)
          | get_negative_ray_attacks(occupied, SOUTH, square);
 }
  
-static inline bitboard rank_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard rank_attacks(bitboard occupied, unsigned int square)
 {
     return get_positive_ray_attacks(occupied, EAST, square)
          | get_negative_ray_attacks(occupied, WEST, square);
 }
 
-static inline bitboard rook_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard rook_attacks(bitboard occupied, unsigned int square)
 {
   return file_attacks(occupied, square) | rank_attacks(occupied, square);
 }
  
-static inline bitboard bishop_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard bishop_attacks(bitboard occupied, unsigned int square)
 {
   return diagonal_attacks(occupied, square) | antiDiag_attacks(occupied, square);
 }
  
-static inline bitboard queen_attacks(bitboard occupied, unsigned int square)
+INLINE bitboard queen_attacks(bitboard occupied, unsigned int square)
 {
   return rook_attacks(occupied, square) | bishop_attacks(occupied, square);
 }

@@ -1,6 +1,8 @@
 #ifndef PATRICIAN_BOARD
 #define PATRICIAN_BOARD
 
+#include <stdio.h>
+
 typedef unsigned long long bitboard;
 
 enum Square {
@@ -16,20 +18,28 @@ enum Square {
 
 extern char * strSquare[];
 
+extern bitboard files[];
+
 enum Pieces
 {
+  PAWN,
+  BLACK_PAWN = PAWN,
 	WHITE_PAWN,
+  KNIGHT,
+  BLACK_KNIGHT = KNIGHT,
 	WHITE_KNIGHT,
+  BISHOP,
+  BLACK_BISHOP = BISHOP,
 	WHITE_BISHOP,
+  ROOK,
+  BLACK_ROOK = ROOK,
 	WHITE_ROOK,
+  QUEEN,
+  BLACK_QUEEN = QUEEN,
 	WHITE_QUEEN,
+  KING,
+  BLACK_KING = KING,
 	WHITE_KING,
-	BLACK_PAWN,
-	BLACK_KNIGHT,
-	BLACK_BISHOP,
-	BLACK_ROOK,
-	BLACK_QUEEN,
-	BLACK_KING,
 	NUM_PIECES
 };
 
@@ -65,5 +75,8 @@ typedef struct Board
 int set_from_FEN(Board* board, const char* FEN);
 
 void print_board(Board* board);
+void log_board(const char* filename, Board* board);
+void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol);
+
 
 #endif

@@ -2,9 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "move.h"
 #include "board.h"
+#include "bitscans.h"
+
+static int promotionPieces[] = {KNIGHT, BISHOP, ROOK, QUEEN};
 
 Move make_move_from_str(Board* board, const char* moveStr)
 {
@@ -56,7 +60,7 @@ int is_move(const char* moveStr)
 
     for (i = 0; i < 4; ++i)
     {
-        buf[i] = tolower(moveStr[i]);
+        buf[i] = (char)tolower(moveStr[i]);
     }
 
     if (('a' > buf[0]) || ('h' < buf[0]) || ('a' > buf[2]) || ('h' < buf[2]) ||
@@ -71,4 +75,221 @@ int is_move(const char* moveStr)
 void sprint_move(char* buffer, Move move)
 {
     sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
+}
+
+void make_move(Board* board, Move* move)
+{
+    bitboard fromBB = 1ull << move->from;
+    bitboard toBB = 1ull << move->to;
+    bitboard fromToBB = fromBB | toBB;
+
+    move->enPassant = 0;
+    if (board->enPassant)
+    {
+        move->enPassant = bit_scan_forward(board->enPassant) + 1;
+    }
+
+    if (move->flags == 0)
+    {
+        board->pieces[move->piece] ^= fromToBB;
+        board->sides[move->side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+    }
+    else if ((move->flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
+    {
+        int i;
+        int promoPiece = promotionPieces[move->flags & 3] + move->side;
+
+        board->pieces[move->piece] ^= fromBB;
+        board->pieces[promoPiece] ^= toBB;
+        board->sides[move->side] ^= fromToBB;
+        board->sides[1-move->side] ^= toBB;
+
+        for (i = 0; i < 6; ++i)
+        {
+            int pieceIndex = i*2 + (1-move->side);
+            if (board->pieces[pieceIndex] & toBB)
+            {
+                board->pieces[pieceIndex] ^= toBB;
+                move->capturedPiece = pieceIndex;
+            }
+        }
+
+        board->occupied ^= fromBB;
+        board->empty ^= fromBB;
+    }
+    else if (move->flags & PROMOTION_FLAG)
+    {
+        int promoPiece = promotionPieces[move->flags & 3] + move->side;
+
+        board->pieces[move->piece] ^= fromBB;
+        board->pieces[promoPiece] ^= toBB;
+        board->sides[move->side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+    }
+    else if (move->flags & CAPTURE_FLAG)
+    {
+        int i;
+
+        board->pieces[move->piece] ^= fromToBB;
+        board->sides[move->side] ^= fromToBB;
+        board->sides[1-move->side] ^= toBB;
+        board->occupied ^= fromBB;
+        board->empty ^= fromBB;
+        for (i = 0; i < 6; ++i)
+        {
+            int pieceIndex = i*2 + (1-move->side);
+            if (board->pieces[pieceIndex] & toBB)
+            {
+                board->pieces[pieceIndex] ^= toBB;
+                move->capturedPiece = pieceIndex;
+            }
+        }
+    }
+    else if (move->flags & SPECIAL1_FLAG)
+    {
+        int rookIndex = ROOK + move->side;
+        bitboard rookFromTo;
+        if (move->flags & SPECIAL0_FLAG)
+        {
+            rookFromTo = ((1ull << A1) | (1ull << A8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo << 3;
+        }
+        else
+        {
+            rookFromTo = ((1ull << H1) | (1ull << H8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo >> 2;
+        }
+        board->pieces[move->piece] ^= fromToBB;
+        board->pieces[rookIndex] ^= rookFromTo;
+        board->sides[move->side] ^= fromToBB | rookFromTo;
+        board->occupied ^= fromToBB | rookFromTo;
+        board->empty ^= fromToBB | rookFromTo;
+    }
+    else if (move->flags & SPECIAL0_FLAG)
+    {
+        board->pieces[move->piece] ^= fromToBB;
+        board->sides[move->side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+        board->enPassant = files[move->to];
+    }
+    else
+    {
+        print_board(board);
+        printf("Move:\n");
+        printf("from: %i(%s)\n", move->from, strSquare[move->from]);
+        printf("to: %i(%s)\n", move->to, strSquare[move->to]);
+        printf("piece: %i\n", move->piece);
+        printf("flags: %i\n", move->flags);
+        printf("capturedPiece: %i\n", move->capturedPiece);
+        printf("side: %i\n", move->side);
+
+        log_board("before.txt", board);
+
+        log_board("after.txt", board);
+        assert(0);
+    }
+
+    board->sideToMove = 1 - board->sideToMove;
+}
+
+void unmake_move(Board* board, Move move)
+{
+    bitboard fromBB = 1ull << move.from;
+    bitboard toBB = 1ull << move.to;
+    bitboard fromToBB = fromBB | toBB;
+
+    board->enPassant = 0;
+    if (move.enPassant)
+    {
+        board->enPassant = files[move.enPassant - 1];
+    }
+
+
+    if (move.flags == 0)
+    {
+        board->pieces[move.piece] ^= fromToBB;
+        board->sides[move.side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+    }
+    else if ((move.flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
+    {
+        int promoPiece = promotionPieces[move.flags & 3] + move.side;
+        board->pieces[move.piece] ^= fromBB;
+        board->pieces[promoPiece] ^= toBB;
+        board->sides[move.side] ^= fromToBB;
+        board->sides[1-move.side] ^= toBB;
+        board->pieces[move.capturedPiece] ^= toBB;
+
+        board->occupied ^= fromBB;
+        board->empty ^= fromBB;
+    }
+    else if (move.flags & PROMOTION_FLAG)
+    {
+        int promoPiece = promotionPieces[move.flags & 3] + move.side;
+
+        board->pieces[move.piece] ^= fromBB;
+        board->pieces[promoPiece] ^= toBB;
+        board->sides[move.side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+    }
+    else if (move.flags & CAPTURE_FLAG)
+    {
+        board->pieces[move.piece] ^= fromToBB;
+        board->sides[move.side] ^= fromToBB;
+        board->sides[1 - move.side] ^= toBB;
+        board->occupied ^= fromBB;
+        board->empty ^= fromBB;
+        board->pieces[move.capturedPiece] ^= toBB;
+    }
+    else if (move.flags & SPECIAL1_FLAG)
+    {
+        int rookIndex = ROOK + move.side;
+        bitboard rookFromTo;
+        if (move.flags & SPECIAL0_FLAG)
+        {
+            rookFromTo = ((1ull << A1) | (1ull << A8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo << 3;
+        }
+        else
+        {
+            rookFromTo = ((1ull << H1) | (1ull << H8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo >> 2;
+        }
+        board->pieces[move.piece] ^= fromToBB;
+        board->pieces[rookIndex] ^= rookFromTo;
+        board->sides[move.side] ^= fromToBB | rookFromTo;
+        board->occupied ^= fromToBB | rookFromTo;
+        board->empty ^= fromToBB | rookFromTo;
+    }
+    else if (move.flags & SPECIAL0_FLAG)
+    {
+        board->pieces[move.piece] ^= fromToBB;
+        board->sides[move.side] ^= fromToBB;
+        board->occupied ^= fromToBB;
+        board->empty ^= fromToBB;
+    }
+    else
+    {
+        print_board(board);
+        printf("Move:\n");
+        printf("from: %i(%s)\n", move.from, strSquare[move.from]);
+        printf("to: %i(%s)\n", move.to, strSquare[move.to]);
+        printf("piece: %i\n", move.piece);
+        printf("flags: %i\n", move.flags);
+        printf("capturedPiece: %i\n", move.capturedPiece);
+        printf("side: %i\n", move.side);
+
+        log_board("before.txt", board);
+
+        log_board("after.txt", board);
+        assert(0);
+    }
+
+    board->sideToMove = 1 - board->sideToMove;
 }

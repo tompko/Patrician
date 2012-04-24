@@ -91,7 +91,7 @@ int main(void)
 		{
 			char* spaceLoc = strchr(input, ' ');
 
-			if(spaceLoc && spaceLoc - input == strlen(userCommands[i].command))
+			if(spaceLoc && (size_t)(spaceLoc - input) == strlen(userCommands[i].command))
 			{
 				if(!strncmp(input, userCommands[i].command, spaceLoc - input))
 				{
@@ -129,6 +129,7 @@ int main(void)
 void help(const char* input)
 {
 	int i;
+	input;
 
 	for(i = 0; i < NUM_COMMANDS; ++i)
 	{
@@ -140,9 +141,10 @@ static int maxPerftLevel = 2;
 
 void test_perft(const char* input)
 {
+	int i, j;
 	Game game;
 	game.moves.children = NULL;
-	int i, j;
+	input;
 
 	initPerftTests();
 	printf("\n\n\n");
@@ -196,10 +198,12 @@ void run_divide(const char* input)
 
 void display(const char* input)
 {
+	input;
 	print_board(&g_Game.board);
 }
 
 void new_game(const char* input)
 {
+	input;
 	set_game_from_FEN(&g_Game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }

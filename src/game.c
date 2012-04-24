@@ -56,91 +56,6 @@ MoveNode* generate_moves(Board* board)
 	return ret;
 }
 
-void make_move(Board* board, Move* move)
-{
-	bitboard fromBB = 1ull << move->from;
-	bitboard toBB = 1ull << move->to;
-	bitboard fromToBB = fromBB | toBB;
-
-	board->pieces[move->piece] ^= fromToBB;
-	if (move->piece < BLACK_PAWN)
-	{
-		board->sides[WHITE] ^= fromToBB;
-		if (move->flags & CAPTURE_FLAG)
-		{
-			int i;
-			for (i = BLACK_PAWN; i <= BLACK_KING; ++i)
-			{
-				if (board->pieces[i] & toBB)
-				{
-					board->pieces[i] &= ~toBB;
-					board->sides[BLACK] &= ~toBB;
-					board->occupied ^= toBB;
-					move->capturedPiece = i;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		board->sides[BLACK] ^= fromToBB;
-		if (move->flags & CAPTURE_FLAG)
-		{
-			int i;
-			for (i = WHITE_PAWN; i < WHITE_KING; ++i)
-			{
-				if (board->pieces[i] & toBB)
-				{
-					board->pieces[i] &= ~toBB;
-					board->sides[WHITE] &= ~toBB;
-					board->occupied ^= toBB;
-					move->capturedPiece = i;
-					break;
-				}
-			}
-		}
-	}
-	board->occupied ^= fromToBB;
-	board->empty ^= fromToBB;
-
-	board->sideToMove = 1 - board->sideToMove;
-}
-
-void unmake_move(Board* board, Move move)
-{
-	bitboard fromBB = 1ull << move.from;
-	bitboard toBB = 1ull << move.to;
-	bitboard fromToBB = fromBB | toBB;
-
-	board->pieces[move.piece] ^= fromToBB;
-	if (move.piece < BLACK_PAWN)
-	{
-		board->sides[WHITE] ^= fromToBB;
-		if (move.flags & CAPTURE_FLAG)
-		{
-			board->pieces[move.capturedPiece] |= toBB;
-			board->sides[BLACK] |= toBB;
-			board->occupied ^= toBB;
-		}
-	}
-	else
-	{
-		board->sides[BLACK] ^= fromToBB;
-		if (move.flags & CAPTURE_FLAG)
-		{
-			board->pieces[move.capturedPiece] |= toBB;
-			board->sides[WHITE] |= toBB;
-			board->occupied ^= toBB;
-		}
-
-	}
-	board->occupied ^= fromToBB;
-	board->empty ^= fromToBB;
-
-	board->sideToMove = 1 - board->sideToMove;
-}
-
 int perft(Game* game, int level)
 {
     return board_perft(&game->board, &game->moves, level);
@@ -365,13 +280,13 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 		int pawnSquare = bit_scan_forward(singlepromo);
 		move.from = pawnSquare - 8;
 		move.to = pawnSquare;
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG;
+		move.flags = PROMOTION_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL0_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
 		add_move(movenode, move);
 		singlepromo = clear_lsb(singlepromo);
 	}
@@ -458,13 +373,13 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 		int pawnSquare = bit_scan_forward(singlepromo);
 		move.from = pawnSquare + 8;
 		move.to = pawnSquare;
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG;
+		move.flags = PROMOTION_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL0_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG;
 		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
+		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
 		add_move(movenode, move);
 		singlepromo = clear_lsb(singlepromo);
 	}
@@ -661,12 +576,12 @@ void generate_queens(Board* board, MoveNode* movenode,
 void generate_king(Board* board, MoveNode* movenode,
 					int piece, int mySide, int theirSide)
 {
+	Move move;
 	int kingSquare = bit_scan_forward(board->pieces[piece]);
 	bitboard allMoves = kingMoves[kingSquare] & ~board->sides[mySide];
 	bitboard captures = allMoves & board->sides[theirSide];
 	allMoves &= ~captures;
 
-	Move move;
 	move.from = kingSquare;
 	move.flags = 0;
 	move.piece = piece;

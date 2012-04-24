@@ -1,6 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include "defines.h"
+
 typedef struct
 {
     unsigned int to: 6;
@@ -9,6 +11,7 @@ typedef struct
     unsigned int flags: 4;
     unsigned int capturedPiece: 4;
     unsigned int side: 1;
+    unsigned int enPassant: 4;
 } Move;
 
 typedef struct MoveNode
@@ -32,7 +35,10 @@ Move make_move_from_str(struct Board* board, const char* moveStr);
 int is_move(const char* moveStr);
 void sprint_move(char* buffer, Move move);
 
-static inline void init_move_node(MoveNode* movenode)
+void make_move(struct Board* board, Move* move);
+void unmake_move(struct Board* board, Move move);
+
+INLINE void init_move_node(MoveNode* movenode)
 {
     int i = 0;
 
@@ -48,7 +54,7 @@ static inline void init_move_node(MoveNode* movenode)
     }
 }
 
-static inline void free_move_node(MoveNode* movenode)
+INLINE void free_move_node(MoveNode* movenode)
 {
     int i;
     for (i = 0; i < movenode->maxChildren; ++i)
@@ -62,7 +68,7 @@ static inline void free_move_node(MoveNode* movenode)
     movenode->maxChildren = 0;
 }
 
-static inline void add_move(MoveNode* movenode, Move move)
+INLINE void add_move(MoveNode* movenode, Move move)
 {
 	if (movenode->numChildren == movenode->maxChildren)
 	{

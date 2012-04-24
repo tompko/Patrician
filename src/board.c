@@ -17,6 +17,75 @@ char * strSquare[] = {
 "a8","b8","c8","d8","e8","f8","g8","h8"
 };
 
+bitboard files[] = {
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080,
+    0x0101010101010101,
+    0x0202020202020202,
+    0x0404040404040404,
+    0x0808080808080808,
+    0x1010101010101010,
+    0x2020202020202020,
+    0x4040404040404040,
+    0x8080808080808080
+};
+
+void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol);
+
 int set_from_FEN(Board* board, const char* FEN)
 {
 	int rank = 7, file = 0;
@@ -235,8 +304,11 @@ void print_board(Board* board)
 {
     int i, rank, file;
     char strBoard[64];
-    char boardPieces[NUM_PIECES] = {'P', 'N', 'B', 'R', 'Q', 'K',
-                                    'p', 'n', 'b', 'r', 'q', 'k'};
+    char boardPieces[NUM_PIECES] = {'p', 'P', 'n', 'N', 'b', 'B', 'r', 'R', 'q', 'Q', 'k', 'K'};
+    char* sideStr[2] = {"black", "white"};
+    char* castlingStr[4] = {"K", "Q", "k", "q"};
+    char castlingBuf[5] = {0,0,0,0,0};
+    char * enPassant = "-";
 
     for (i = 0; i < 64; ++i)
     {
@@ -267,9 +339,6 @@ void print_board(Board* board)
     }
 
     printf("\n\n");
-    char* sideStr[2] = {"black", "white"};
-    char* castlingStr[4] = {"K", "Q", "k", "q"};
-    char castlingBuf[5] = {0,0,0,0,0};
 
     for(i = 0; i < 5; ++i)
     {
@@ -279,7 +348,6 @@ void print_board(Board* board)
         }
     }
 
-    char * enPassant = "-";
     if (board->enPassant)
     {
         enPassant = strSquare[bit_scan_forward(board->enPassant)];
@@ -287,4 +355,56 @@ void print_board(Board* board)
 
     printf("move: %i, turn: %s\n", board->move, sideStr[board->sideToMove]);
     printf("castling: %s, ep-file: %s\n", castlingBuf, enPassant);
+}
+
+void log_board(const char* filename, Board* board)
+{
+    FILE* file = fopen(filename, "w");
+
+    log_bitboard(file, board->pieces[WHITE_PAWN], "white pawn", 'P');
+    log_bitboard(file, board->pieces[WHITE_KNIGHT], "white knight", 'N');
+    log_bitboard(file, board->pieces[WHITE_BISHOP], "white bishop", 'B');
+    log_bitboard(file, board->pieces[WHITE_ROOK], "white rook", 'R');
+    log_bitboard(file, board->pieces[WHITE_QUEEN], "white queen", 'Q');
+    log_bitboard(file, board->pieces[WHITE_KING], "white king", 'K');
+    log_bitboard(file, board->pieces[BLACK_PAWN], "black pawn", 'p');
+    log_bitboard(file, board->pieces[BLACK_KNIGHT], "black knight", 'n');
+    log_bitboard(file, board->pieces[BLACK_BISHOP], "black bishop", 'b');
+    log_bitboard(file, board->pieces[BLACK_ROOK], "black rook", 'r');
+    log_bitboard(file, board->pieces[BLACK_QUEEN], "black queen", 'q');
+    log_bitboard(file, board->pieces[BLACK_KING], "black king", 'k');
+
+    log_bitboard(file, board->sides[WHITE], "white pieces", 'W');
+    log_bitboard(file, board->sides[BLACK], "black pieces", 'B');
+
+    log_bitboard(file, board->occupied, "occupied", '#');
+    log_bitboard(file, board->empty, "empty", '#');
+
+    fprintf(file, "enPassant: 0x%016llx\n", board->enPassant);
+    fprintf(file, "move: %s\n", board->sideToMove ? "white" : "black");
+
+    fclose(file);
+}
+
+void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol)
+{
+    int ra, fi;
+    fprintf(file, "%s:\n", name);
+
+    for (ra = 7; ra >= 0; --ra)
+    {
+        for (fi = 0; fi < 8; ++fi)
+        {
+            if (bb & (1ull << (ra*8 + fi)))
+            {
+                fprintf(file, "%c", symbol);
+            }
+            else
+            {
+                fprintf(file, "%c", '.');
+            }
+        }
+        fprintf(file, "\n");
+    }
+    fprintf(file, "\n");
 }
