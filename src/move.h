@@ -8,6 +8,7 @@ typedef struct
     unsigned int piece: 4;
     unsigned int flags: 4;
     unsigned int capturedPiece: 4;
+    unsigned int side: 1;
 } Move;
 
 typedef struct MoveNode

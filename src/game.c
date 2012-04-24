@@ -249,6 +249,7 @@ void generate_white_moves(Board* board, MoveNode* movenode)
 		move.to = G1;
 		move.flags = SPECIAL1_FLAG;
 		move.piece = WHITE_KING;
+		move.side = WHITE;
 		add_move(movenode, move);
 	}
 	if (board->castling & (1ull << WHITE_QUEENSIDE) &&
@@ -260,6 +261,7 @@ void generate_white_moves(Board* board, MoveNode* movenode)
 		move.to = C1;
 		move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
 		move.piece = WHITE_KING;
+		move.side = WHITE;
 		add_move(movenode, move);
 	}
 }
@@ -286,6 +288,7 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 		move.to = G8;
 		move.flags = SPECIAL1_FLAG;
 		move.piece = BLACK_KING;
+		move.side = BLACK;
 		add_move(movenode, move);
 	}
 	if (board->castling & (1ull << BLACK_QUEENSIDE) &&
@@ -297,6 +300,7 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 		move.to = C8;
 		move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
 		move.piece = BLACK_KING;
+		move.side = BLACK;
 		add_move(movenode, move);
 	}
 }
@@ -318,6 +322,7 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 
 	move.flags = 0;
 	move.piece = WHITE_PAWN;
+	move.side = WHITE;
 
 	while(singlepush)
 	{
@@ -410,6 +415,7 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 
 	move.flags = 0;
 	move.piece = BLACK_PAWN;
+	move.side = BLACK;
 
 	while(singlepush)
 	{
@@ -504,6 +510,7 @@ void generate_knights(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(allMoves);
 			move.flags = 0;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
@@ -516,6 +523,7 @@ void generate_knights(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(captures);
 			move.flags = CAPTURE_FLAG;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			captures = clear_lsb(captures);
@@ -544,6 +552,7 @@ void generate_rooks(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(allMoves);
 			move.flags = 0;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
@@ -556,6 +565,7 @@ void generate_rooks(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(captures);
 			move.flags = CAPTURE_FLAG;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			captures = clear_lsb(captures);
@@ -584,6 +594,7 @@ void generate_bishops(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(allMoves);
 			move.flags = 0;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
@@ -596,6 +607,7 @@ void generate_bishops(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(captures);
 			move.flags = CAPTURE_FLAG;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			captures = clear_lsb(captures);
@@ -624,6 +636,7 @@ void generate_queens(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(allMoves);
 			move.flags = 0;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			allMoves = clear_lsb(allMoves);
@@ -636,6 +649,7 @@ void generate_queens(Board* board, MoveNode* movenode,
 			move.to = bit_scan_forward(captures);
 			move.flags = CAPTURE_FLAG;
 			move.piece = piece;
+			move.side = mySide;
 			add_move(movenode, move);
 
 			captures = clear_lsb(captures);
@@ -656,6 +670,7 @@ void generate_king(Board* board, MoveNode* movenode,
 	move.from = kingSquare;
 	move.flags = 0;
 	move.piece = piece;
+	move.side = mySide;
 
 	while(allMoves)
 	{
