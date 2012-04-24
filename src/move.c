@@ -83,11 +83,7 @@ void make_move(Board* board, Move* move)
     bitboard toBB = 1ull << move->to;
     bitboard fromToBB = fromBB | toBB;
 
-    move->enPassant = 0;
-    if (board->enPassant)
-    {
-        move->enPassant = bit_scan_forward(board->enPassant) + 1;
-    }
+    push_state(board);
 
     if (move->flags == 0)
     {
@@ -128,6 +124,18 @@ void make_move(Board* board, Move* move)
         board->sides[move->side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+    }
+    else if ((move->flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
+    {
+        bitboard captureSquare = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+
+        board->pieces[move->piece] ^= fromToBB;
+        board->sides[move->side] ^= fromToBB;
+        board->sides[1 - move->side] ^= captureSquare;
+        board->occupied ^= fromToBB | captureSquare;
+        board->empty ^= fromToBB | captureSquare;
+        move->capturedPiece = PAWN + (1 - move->side);
+        board->pieces[move->capturedPiece] ^= captureSquare;
     }
     else if (move->flags & CAPTURE_FLAG)
     {
@@ -174,7 +182,7 @@ void make_move(Board* board, Move* move)
         board->sides[move->side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
-        board->enPassant = files[move->to];
+        board->enPassant = squareFiles[move->to];
     }
     else
     {
@@ -201,13 +209,6 @@ void unmake_move(Board* board, Move move)
     bitboard fromBB = 1ull << move.from;
     bitboard toBB = 1ull << move.to;
     bitboard fromToBB = fromBB | toBB;
-
-    board->enPassant = 0;
-    if (move.enPassant)
-    {
-        board->enPassant = files[move.enPassant - 1];
-    }
-
 
     if (move.flags == 0)
     {
@@ -238,6 +239,17 @@ void unmake_move(Board* board, Move move)
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
     }
+    else if ((move.flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
+    {
+        bitboard captureSquare = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+
+        board->pieces[move.piece] ^= fromToBB;
+        board->sides[move.side] ^= fromToBB;
+        board->sides[1 - move.side] ^= captureSquare;
+        board->occupied ^= fromToBB | captureSquare;
+        board->empty ^= fromToBB | captureSquare;
+        board->pieces[move.capturedPiece] ^= captureSquare;
+    }
     else if (move.flags & CAPTURE_FLAG)
     {
         board->pieces[move.piece] ^= fromToBB;
@@ -251,16 +263,18 @@ void unmake_move(Board* board, Move move)
     {
         int rookIndex = ROOK + move.side;
         bitboard rookFromTo;
+
         if (move.flags & SPECIAL0_FLAG)
         {
-            rookFromTo = ((1ull << A1) | (1ull << A8)) & board->pieces[rookIndex];
-            rookFromTo |= rookFromTo << 3;
+            rookFromTo = ((1ull << D1) | (1ull << D8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo >> 3;
         }
         else
         {
-            rookFromTo = ((1ull << H1) | (1ull << H8)) & board->pieces[rookIndex];
-            rookFromTo |= rookFromTo >> 2;
+            rookFromTo = ((1ull << F1) | (1ull << F8)) & board->pieces[rookIndex];
+            rookFromTo |= rookFromTo << 2;
         }
+
         board->pieces[move.piece] ^= fromToBB;
         board->pieces[rookIndex] ^= rookFromTo;
         board->sides[move.side] ^= fromToBB | rookFromTo;
@@ -290,6 +304,8 @@ void unmake_move(Board* board, Move move)
         log_board("after.txt", board);
         assert(0);
     }
+
+    pop_state(board);
 
     board->sideToMove = 1 - board->sideToMove;
 }

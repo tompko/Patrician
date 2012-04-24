@@ -223,10 +223,9 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 void generate_white_pawns(Board* board, MoveNode* movenode)
 {
 	Move move;
-	bitboard promotionRank = (1ull << A7) | (1ull << B7) | (1ull << C7) | (1ull << D7) |
-							(1ull << E7) | (1ull << F7) | (1ull << G7) | (1ull << H7);
-	bitboard startRank = (1ull << A2) | (1ull << B2) | (1ull << C2) | (1ull << D2) |
-						(1ull << E2) | (1ull << F2) | (1ull << G2) | (1ull << H2);
+	bitboard promotionRank = ranks[6];
+	bitboard epAttackRank = ranks[5];
+	bitboard startRank = ranks[1];
 	bitboard promoPawns = board->pieces[WHITE_PAWN] & promotionRank;
 	bitboard nonPromoPawns = board->pieces[WHITE_PAWN] & ~promotionRank;
 
@@ -259,18 +258,27 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 		doublepush = clear_lsb(doublepush);
 	}
 
-	move.flags = CAPTURE_FLAG;
-
 	while(nonPromoPawns)
 	{
 		int pawnSquare = bit_scan_forward(nonPromoPawns);
 		bitboard attacks = pawnAttacks[WHITE][pawnSquare] & board->sides[BLACK];
+		bitboard epAttacks = pawnAttacks[WHITE][pawnSquare] & board->enPassant & epAttackRank;
+
 		while(attacks)
 		{
 			move.from = pawnSquare;
 			move.to = bit_scan_forward(attacks);
+			move.flags = CAPTURE_FLAG;
 			add_move(movenode, move);
 			attacks = clear_lsb(attacks);
+		}
+		while(epAttacks)
+		{
+			move.from = pawnSquare;
+			move.to = bit_scan_forward(epAttacks);
+			move.flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			add_move(movenode, move);
+			epAttacks = clear_lsb(epAttacks);	
 		}
 		nonPromoPawns = clear_lsb(nonPromoPawns);
 	}
@@ -316,10 +324,9 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 void generate_black_pawns(Board* board, MoveNode* movenode)
 {
 	Move move;
-	bitboard promotionRank = (1ull << A2) | (1ull << B2) | (1ull << C2) | (1ull << D2) |
-						(1ull << E2) | (1ull << F2) | (1ull << G2) | (1ull << H2);
-	bitboard startRank = (1ull << A7) | (1ull << B7) | (1ull << C7) | (1ull << D7) |
-						(1ull << E7) | (1ull << F7) | (1ull << G7) | (1ull << H7);
+	bitboard promotionRank = ranks[1];
+	bitboard epAttackRank = ranks[2];
+	bitboard startRank = ranks[6];
 	bitboard promoPawns = board->pieces[BLACK_PAWN] & promotionRank;
 	bitboard nonPromoPawns = board->pieces[BLACK_PAWN] & ~promotionRank;
 
@@ -352,18 +359,26 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 		doublepush = clear_lsb(doublepush);
 	}
 
-	move.flags = CAPTURE_FLAG;
-
 	while(nonPromoPawns)
 	{
 		int pawnSquare = bit_scan_forward(nonPromoPawns);
 		bitboard attacks = pawnAttacks[BLACK][pawnSquare] & board->sides[WHITE];
+		bitboard epAttacks = pawnAttacks[BLACK][pawnSquare] & board->enPassant & epAttackRank;
 		while(attacks)
 		{
 			move.from = pawnSquare;
 			move.to = bit_scan_forward(attacks);
+			move.flags = CAPTURE_FLAG;
 			add_move(movenode, move);
 			attacks = clear_lsb(attacks);
+		}
+		while(epAttacks)
+		{
+			move.from = pawnSquare;
+			move.to = bit_scan_forward(epAttacks);
+			move.flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			add_move(movenode, move);
+			epAttacks = clear_lsb(epAttacks);
 		}
 		nonPromoPawns = clear_lsb(nonPromoPawns);
 	}

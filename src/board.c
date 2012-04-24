@@ -17,7 +17,7 @@ char * strSquare[] = {
 "a8","b8","c8","d8","e8","f8","g8","h8"
 };
 
-bitboard files[] = {
+bitboard squareFiles[] = {
     0x0101010101010101,
     0x0202020202020202,
     0x0404040404040404,
@@ -84,12 +84,28 @@ bitboard files[] = {
     0x8080808080808080
 };
 
+bitboard ranks[] = 
+{
+    0x00000000000000FF,
+    0x000000000000FF00,
+    0x0000000000FF0000,
+    0x00000000FF000000,
+    0x000000FF00000000,
+    0x0000FF0000000000,
+    0x00FF000000000000,
+    0xFF00000000000000,
+};
+
 void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol);
 
 int set_from_FEN(Board* board, const char* FEN)
 {
 	int rank = 7, file = 0;
     memset(board, 0, sizeof(Board));
+
+    board->stateHistory = (BoardState*)malloc(sizeof(BoardState));
+    board->numHistory = 0;
+    board->maxHistory = 1;
 
 	while(*FEN != ' ')
 	{
@@ -407,4 +423,29 @@ void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol)
         fprintf(file, "\n");
     }
     fprintf(file, "\n");
+}
+
+void push_state(Board* board)
+{
+    if (board->numHistory == board->maxHistory)
+    {
+        board->maxHistory *= 2;
+        board->stateHistory = realloc(board->stateHistory, sizeof(BoardState)*board->maxHistory);
+    }
+
+    board->stateHistory[board->numHistory].enPassant = board->enPassant;
+    board->stateHistory[board->numHistory].castling = board->castling;
+    board->stateHistory[board->numHistory].halfmove = board->halfmove;
+
+    ++board->numHistory;
+}
+
+void pop_state(Board* board)
+{
+    --board->numHistory;
+
+    board->stateHistory[board->numHistory].enPassant = board->enPassant;
+    board->stateHistory[board->numHistory].castling = board->castling;
+    board->stateHistory[board->numHistory].halfmove = board->halfmove;
+
 }

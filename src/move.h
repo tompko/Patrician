@@ -11,7 +11,6 @@ typedef struct
     unsigned int flags: 4;
     unsigned int capturedPiece: 4;
     unsigned int side: 1;
-    unsigned int enPassant: 4;
 } Move;
 
 typedef struct MoveNode
