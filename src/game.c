@@ -198,19 +198,12 @@ int board_perft(Board* board, MoveNode* moves, int level)
 
 	if (level <= 0)
 	{
-		for (i = 0; i < moves->numChildren; ++i)
+		if ((board->sideToMove == BLACK &&
+			black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+			(board->sideToMove == WHITE &&
+			white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
 		{
-			bitboard toBB = 1ull << moves->children[i].move.to;
-			if (board->sideToMove == WHITE && 
-				(board->pieces[BLACK_KING] & toBB))
-			{
-				return 0;
-			}
-			else if (board->sideToMove == BLACK &&
-				(board->pieces[WHITE_KING] & toBB))
-			{
-				return 0;
-			}
+			return 0;
 		}
 		return 1;
 	}
@@ -685,7 +678,8 @@ int white_attacks_square(Board* board, int square)
 		knightMoves[square] & board->pieces[WHITE_KNIGHT] ||
 		bishop_attacks(board->occupied, square) & board->pieces[WHITE_BISHOP] ||
 		rook_attacks(board->occupied, square) & board->pieces[WHITE_ROOK] ||
-		queen_attacks(board->occupied, square) & board->pieces[WHITE_QUEEN]);
+		queen_attacks(board->occupied, square) & board->pieces[WHITE_QUEEN] ||
+		kingMoves[square] & board->pieces[WHITE_KING]);
 }
 
 int black_attacks_square(Board* board, int square)
@@ -694,6 +688,7 @@ int black_attacks_square(Board* board, int square)
 		knightMoves[square] & board->pieces[BLACK_KNIGHT] ||
 		bishop_attacks(board->occupied, square) & board->pieces[BLACK_BISHOP] ||
 		rook_attacks(board->occupied, square) & board->pieces[BLACK_ROOK] ||
-		queen_attacks(board->occupied, square) & board->pieces[BLACK_QUEEN]);
+		queen_attacks(board->occupied, square) & board->pieces[BLACK_QUEEN] ||
+		kingMoves[square] & board->pieces[BLACK_KING]);
 
 }
