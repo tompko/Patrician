@@ -48,7 +48,7 @@ enum Castling
     BLACK_QUEENSIDE
 };
 
-typedef struct
+typedef struct Board
 {
 	bitboard pieces[NUM_PIECES];   //One bitboard for each piece type
 	bitboard sides[NUM_COLOURS];   //Occupancy per side

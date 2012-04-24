@@ -111,8 +111,8 @@ int main(void)
 
 		if(is_move(input))
 		{
-			printf("Making move %s\n", input);
-			make_move_str(&g_Game.board, input);
+			Move move = make_move_from_str(&g_Game.board, input);
+			make_move(&g_Game.board, &move);
 			g_Game.moves.children = NULL;
 			g_Game.moves.numChildren = 0;
 			g_Game.moves.maxChildren = 0;

@@ -25,6 +25,12 @@ typedef struct MoveNode
 
 #define DEFAULT_NUM_CHILDREN (30)
 
+struct Board;
+
+Move make_move_from_str(struct Board* board, const char* moveStr);
+int is_move(const char* moveStr);
+void sprint_move(char* buffer, Move move);
+
 static inline void init_move_node(MoveNode* movenode)
 {
     int i = 0;
