@@ -4,10 +4,12 @@
 #ifdef _MSC_VER
 
 #define INLINE __inline
+#define UNUSED(x) x
 
 #else
 
 #define INLINE static inline
+#define UNUSED(x) 
 
 #endif
 

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <malloc.h>
 
+#include "defines.h"
 #include "perftTest.h"
 #include "game.h"
 #include "bitscans.h"
@@ -129,7 +130,7 @@ int main(void)
 void help(const char* input)
 {
 	int i;
-	input;
+	UNUSED(input);
 
 	for(i = 0; i < NUM_COMMANDS; ++i)
 	{
@@ -144,7 +145,7 @@ void test_perft(const char* input)
 	int i, j;
 	Game game;
 	game.moves.children = NULL;
-	input;
+	UNUSED(input);
 
 	initPerftTests();
 	printf("\n\n\n");
@@ -198,12 +199,12 @@ void run_divide(const char* input)
 
 void display(const char* input)
 {
-	input;
+	UNUSED(input);
 	print_board(&g_Game.board);
 }
 
 void new_game(const char* input)
 {
-	input;
+	UNUSED(input);
 	set_game_from_FEN(&g_Game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
