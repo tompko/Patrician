@@ -56,6 +56,7 @@ Move make_move_from_str(Board* board, const char* moveStr)
     {
         move.flags |= SPECIAL0_FLAG;
     }
+    move.side = move.piece % 2;
     return move;
 }
 
