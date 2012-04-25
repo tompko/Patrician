@@ -44,7 +44,18 @@ Move make_move_from_str(Board* board, const char* moveStr)
         move.capturedPiece = toPiece;
         move.flags |= CAPTURE_FLAG;
     }
-    
+    if (move.piece == WHITE_PAWN && 
+        ((1ull << move.from) & ranks[1]) &&
+         ((1ull << move.to) & ranks[3]))
+    {
+        move.flags |= SPECIAL0_FLAG;
+    }
+    if (move.piece == BLACK_PAWN &&
+        ((1ull << move.from) & ranks[6]) &&
+        ((1ull << move.to) & ranks[4]))
+    {
+        move.flags |= SPECIAL0_FLAG;
+    }
     return move;
 }
 
