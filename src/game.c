@@ -190,6 +190,7 @@ void generate_white_moves(Board* board, MoveNode* movenode)
 	// Castling
 	if (board->castling & (1ull << WHITE_KINGSIDE) &&
 		(board->empty & kingSideMask) == kingSideMask &&
+		!black_attacks_square(board, E1) &&
 		!black_attacks_square(board, F1) && !black_attacks_square(board, G1))
 	{
 		Move move;
@@ -202,6 +203,7 @@ void generate_white_moves(Board* board, MoveNode* movenode)
 	}
 	if (board->castling & (1ull << WHITE_QUEENSIDE) &&
 		(board->empty & queenSideMask) == queenSideMask &&
+		!black_attacks_square(board, E1) &&
 		!black_attacks_square(board, C1) && !black_attacks_square(board, D1))
 	{
 		Move move;
@@ -229,6 +231,7 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 	// Castling
 	if (board->castling & (1ull << BLACK_KINGSIDE) &&
 		(board->empty & kingSideMask) == kingSideMask &&
+		!white_attacks_square(board, E8) &&
 		!white_attacks_square(board, F8) && !white_attacks_square(board, G8))
 	{
 		Move move;
@@ -241,6 +244,7 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 	}
 	if (board->castling & (1ull << BLACK_QUEENSIDE) &&
 		(board->empty & queenSideMask) == queenSideMask &&
+		!white_attacks_square(board, E8) &&
 		!white_attacks_square(board, C8) && !white_attacks_square(board, D8))
 	{
 		Move move;
