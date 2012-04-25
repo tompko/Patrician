@@ -13,6 +13,9 @@
 
 int board_perft(Board* board, MoveNode* moves, int level);
 
+int is_valid_pseudo_move(Board* board, Move move);
+void filter_pseudo_moves(Board* board, MoveNode* movenode);
+
 void generate_white_moves(Board* board, MoveNode* movenode);
 void generate_black_moves(Board* board, MoveNode* movenode);
 
@@ -52,6 +55,8 @@ MoveNode* generate_moves(Board* board)
 	{
 		generate_black_moves(board, ret);
 	}
+
+	filter_pseudo_moves(board, ret);
 
 	return ret;
 }
@@ -102,24 +107,8 @@ int board_perft(Board* board, MoveNode* moves, int level)
 	int i;
 	int perft = 0;
 
-	if (!moves->children)
-	{
-		MoveNode* genMoves = generate_moves(board);
-		moves->children = genMoves->children;
-		moves->numChildren = genMoves->numChildren;
-		moves->maxChildren = genMoves->maxChildren;
-		free(genMoves);
-	}
-
 	if (level <= 0)
 	{
-		if ((board->sideToMove == BLACK &&
-			black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
-			(board->sideToMove == WHITE &&
-			white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
-		{
-			return 0;
-		}
 		return 1;
 	}
 
@@ -140,6 +129,50 @@ int board_perft(Board* board, MoveNode* moves, int level)
 	}
 
 	return perft;
+}
+
+int is_valid_pseudo_move(Board* board, Move move)
+{
+	int valid = 1;
+
+	make_move(board, &move);
+	if ((board->sideToMove == BLACK &&
+		black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+		(board->sideToMove == WHITE &&
+		white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
+	{
+		valid = 0;
+	}
+	unmake_move(board, move);
+
+	return valid;
+}
+
+void filter_pseudo_moves(Board* board, MoveNode* movenode)
+{
+	int i = 0, j = 0, numValidMoves = movenode->numChildren;
+
+	while(i < numValidMoves)
+	{
+		if (is_valid_pseudo_move(board, movenode->children[i].move))
+		{
+			++i;
+		}
+		else
+		{
+			free_move_node(&movenode->children[i]);
+			for (j = i + 1; j < numValidMoves; ++j)
+			{
+				movenode->children[j-1].move = movenode->children[j].move;
+				movenode->children[j-1].children = movenode->children[j].children;
+				movenode->children[j-1].numChildren = movenode->children[j].numChildren;
+				movenode->children[j-1].maxChildren = movenode->children[j].maxChildren;
+			}
+			--numValidMoves;
+		}
+	}
+
+	movenode->numChildren = numValidMoves;
 }
 
 void generate_white_moves(Board* board, MoveNode* movenode)

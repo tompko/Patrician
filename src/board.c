@@ -444,8 +444,7 @@ void pop_state(Board* board)
 {
     --board->numHistory;
 
-    board->stateHistory[board->numHistory].enPassant = board->enPassant;
-    board->stateHistory[board->numHistory].castling = board->castling;
-    board->stateHistory[board->numHistory].halfmove = board->halfmove;
-
+    board->enPassant = board->stateHistory[board->numHistory].enPassant;
+    board->castling = board->stateHistory[board->numHistory].castling;
+    board->halfmove = board->stateHistory[board->numHistory].halfmove;
 }
