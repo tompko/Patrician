@@ -2,6 +2,7 @@
 #define MOVE_H
 
 #include "defines.h"
+#include <assert.h>
 
 typedef struct
 {
@@ -56,7 +57,7 @@ INLINE void init_move_node(MoveNode* movenode)
 INLINE void free_move_node(MoveNode* movenode)
 {
     int i;
-    for (i = 0; i < movenode->maxChildren; ++i)
+    for (i = 0; i < movenode->numChildren; ++i)
     {
         free_move_node(&movenode->children[i]);
     }
