@@ -199,6 +199,37 @@ void make_move(Board* board, Move* move)
             }
         }
 
+		if (move->piece == WHITE_ROOK)
+		{
+			if (move->from == A1)
+			{
+				board->castling &= ~(1ull << WHITE_QUEENSIDE);
+			}
+			else if (move->from == H1)
+			{
+				board->castling &= ~(1ull << WHITE_KINGSIDE);
+			}
+		}
+		else if (move->piece == BLACK_ROOK)
+		{
+			if (move->from == A8)
+			{
+				board->castling &= ~(1ull << BLACK_QUEENSIDE);
+			}
+			else if (move->from == H8)
+			{
+				board->castling &= ~(1ull << BLACK_KINGSIDE);
+			}   
+		}
+		else if (move->piece == WHITE_KING)
+		{
+			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
+		}
+		else if (move->piece == BLACK_KING)
+		{
+			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
+		}
+
         if (move->capturedPiece == WHITE_ROOK)
         {
             if (move->to == A1)
@@ -241,6 +272,15 @@ void make_move(Board* board, Move* move)
         board->sides[move->side] ^= fromToBB | rookFromTo;
         board->occupied ^= fromToBB | rookFromTo;
         board->empty ^= fromToBB | rookFromTo;
+
+		if (move->side == WHITE)
+		{
+			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
+		}
+		else
+		{
+			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
+		}
     }
     else if (move->flags & SPECIAL0_FLAG)
     {
