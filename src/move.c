@@ -96,6 +96,7 @@ void make_move(Board* board, Move* move)
     bitboard fromToBB = fromBB | toBB;
 
     push_state(board);
+    board->enPassant = 0;
 
     if (move->flags == 0)
     {
