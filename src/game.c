@@ -69,13 +69,14 @@ int perft(Game* game, int level)
 void divide(Game* game, int level)
 {
 	int i, totalMoves = 0;
+	MoveNode* genMoves;
 
     if (level <= 0)
     {
     	return;
     }
 
-	MoveNode* genMoves = generate_moves(&game->board);
+    genMoves = generate_moves(&game->board);
 
     for (i = 0; i < genMoves->numChildren; ++i)
     {
@@ -92,32 +93,36 @@ void divide(Game* game, int level)
     	printf("%i\n", numMoves);
     }
 
+    free_move_node(genMoves);
+    free(genMoves);
+
     printf("\nMoves: %i\n", genMoves->numChildren);
     printf("Nodes: %i\n", totalMoves);
 }
 
 int board_perft(Board* board, int level)
 {
-	int i;
-	int perft = 0;
+	int i, nperft = 0;
+	MoveNode* genMoves;
 
 	if (level <= 0)
 	{
 		return 1;
 	}
 
-	MoveNode* genMoves = generate_moves(board);
+	genMoves = generate_moves(board);
 
 	for (i = 0; i < genMoves->numChildren; ++i)
 	{
 		make_move(board, &genMoves->children[i].move);
-		perft += board_perft(board, level - 1);
+		nperft += board_perft(board, level - 1);
 		unmake_move(board, genMoves->children[i].move);
 	}
 
 	free_move_node(genMoves);
+	free(genMoves);
 
-	return perft;
+	return nperft;
 }
 
 int is_valid_pseudo_move(Board* board, Move move)

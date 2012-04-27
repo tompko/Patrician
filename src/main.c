@@ -150,7 +150,7 @@ void test_perft(const char* input)
 
 	for (i = 0; i < NUM_PERFT_TESTS; ++i)
 	{
-		printf("%i/%i FEN: %s\n", i, NUM_PERFT_TESTS, perftTests[i].FEN);
+		printf("%i/%i FEN: %s\n", i+1, NUM_PERFT_TESTS, perftTests[i].FEN);
 		set_game_from_FEN(&game, perftTests[i].FEN);
 		for (j = 0; j < 6; ++j)
 		{
