@@ -7,7 +7,7 @@ typedef struct
     int perfts[6];
 } PerftTest;
 
-#define NUM_PERFT_TESTS (126)
+#define NUM_PERFT_TESTS (128)
 
 PerftTest perftTests[NUM_PERFT_TESTS];
 
@@ -1013,13 +1013,29 @@ void initPerftTests(void)
     perftTests[124].perfts[4] = 1533145;
     perftTests[124].perfts[5] = 28859283;
 
-    perftTests[125].FEN = "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1";
-    perftTests[125].perfts[0] = 24;
-    perftTests[125].perfts[1] = 496;
-    perftTests[125].perfts[2] = 9483;
-    perftTests[125].perfts[3] = 182838;
-    perftTests[125].perfts[4] = 3605103;
-    perftTests[125].perfts[5] = 71179139;
+	perftTests[125].FEN = "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1";
+	perftTests[125].perfts[0] = 24;
+	perftTests[125].perfts[1] = 496;
+	perftTests[125].perfts[2] = 9483;
+	perftTests[125].perfts[3] = 182838;
+	perftTests[125].perfts[4] = 3605103;
+	perftTests[125].perfts[5] = 71179139;
+	
+	perftTests[126].FEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1";
+	perftTests[126].perfts[0] = 14;
+	perftTests[126].perfts[1] = 191;
+	perftTests[126].perfts[2] = 2812;
+	perftTests[126].perfts[3] = 43238;
+	perftTests[126].perfts[4] = 674624;
+	perftTests[126].perfts[5] = 11030083;
+
+	perftTests[127].FEN = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+	perftTests[127].perfts[0] = 6;
+	perftTests[127].perfts[1] = 264;
+	perftTests[127].perfts[2] = 9467;
+	perftTests[127].perfts[3] = 422333;
+	perftTests[127].perfts[4] = 15833292;
+	perftTests[127].perfts[5] = 706045033;
 }
 
 #endif

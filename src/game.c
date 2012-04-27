@@ -105,12 +105,15 @@ int board_perft(Board* board, int level)
 	int i, nperft = 0;
 	MoveNode* genMoves;
 
-	if (level <= 0)
-	{
-		return 1;
-	}
-
 	genMoves = generate_moves(board);
+
+	if (level == 1)
+	{
+		int ret = genMoves->numChildren;
+		free_move_node(genMoves);
+		free(genMoves);
+		return ret;
+	}
 
 	for (i = 0; i < genMoves->numChildren; ++i)
 	{
