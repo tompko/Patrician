@@ -140,7 +140,7 @@ void help(const char* input)
 
 void test_perft(const char* input)
 {
-	int i, j, k;
+	int i, j;
 	Game game;
 	game.moves.children = NULL;
 	UNUSED(input);
@@ -148,34 +148,29 @@ void test_perft(const char* input)
 	initPerftTests();
 	printf("\n\n\n");
 
-	for (k = 0; k < 6; ++k)
+	for (i = 0; i < NUM_PERFT_TESTS; ++i)
 	{
-		for (i = 0; i < NUM_PERFT_TESTS; ++i)
+		printf("%i/%i FEN: %s\n", i, NUM_PERFT_TESTS, perftTests[i].FEN);
+		set_game_from_FEN(&game, perftTests[i].FEN);
+		for (j = 0; j < 6; ++j)
 		{
-			printf("FEN: %s\n", perftTests[i].FEN);
-			set_game_from_FEN(&game, perftTests[i].FEN);
-			for (j = 0; j < k; ++j)
+			if (perftTests[i].perfts[j] >= 0)
 			{
-				if (perftTests[i].perfts[j] >= 0)
+				int result = perft(&game, j+1);
+				printf("perft %i: %i (%i) %s\n", j+1, result, perftTests[i].perfts[j],
+					result == perftTests[i].perfts[j] ? "PASS" : "FAIL");
+				if (result != perftTests[i].perfts[j])
 				{
-					int result = perft(&game, j+1);
-					printf("perft %i: %i (%i) %s\n", j+1, result, perftTests[i].perfts[j],
-						result == perftTests[i].perfts[j] ? "PASS" : "FAIL");
-					if (result != perftTests[i].perfts[j])
-					{
-						printf("Fail in perft test\n");
-						printf("FEN: %s\n", perftTests[i].FEN);
-						printf("Level: %i\n", j+1);
-						printf("Expected: %i\n", perftTests[i].perfts[j]);
-						printf("Found: %i\n", result);
-						return;
-					}
+					printf("Fail in perft test\n");
+					printf("FEN: %s\n", perftTests[i].FEN);
+					printf("Level: %i\n", j+1);
+					printf("Expected: %i\n", perftTests[i].perfts[j]);
+					printf("Found: %i\n", result);
+					return;
 				}
 			}
-			free_move_node(&game.moves);
 		}
 	}
-
 }
 
 void set_fen(const char * input)
