@@ -20,6 +20,7 @@ extern char * strSquare[];      //The string representation for each square
 
 extern bitboard squareFiles[];  //The file mask for each square
 extern bitboard ranks[];        //The rank mask for each rank
+extern bitboard backranks[];    //The back rank for each side
 
 enum Pieces
 {

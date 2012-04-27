@@ -96,6 +96,12 @@ bitboard ranks[] =
     0xFF00000000000000,
 };
 
+bitboard backranks[] = 
+{
+    0xFF00000000000000,
+    0x00000000000000FF
+};
+
 void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol);
 
 int set_from_FEN(Board* board, const char* FEN)
