@@ -11,7 +11,7 @@
 #include "moves/king_moves.h"
 #include "moves/pawn_attacks.h"
 
-int board_perft(Board* board, MoveNode* moves, int level);
+int board_perft(Board* board, int level);
 
 int is_valid_pseudo_move(Board* board, Move move);
 void filter_pseudo_moves(Board* board, MoveNode* movenode);
@@ -63,7 +63,7 @@ MoveNode* generate_moves(Board* board)
 
 int perft(Game* game, int level)
 {
-    return board_perft(&game->board, &game->moves, level);
+    return board_perft(&game->board, level);
 }
 
 void divide(Game* game, int level)
@@ -75,34 +75,28 @@ void divide(Game* game, int level)
     	return;
     }
 
-    if (!game->moves.children)
-    {
-		MoveNode* genMoves = generate_moves(&game->board);
-		game->moves.children = genMoves->children;
-		game->moves.numChildren = genMoves->numChildren;
-		game->moves.maxChildren = genMoves->maxChildren;
-		free(genMoves);
-    }
+	MoveNode* genMoves = generate_moves(&game->board);
 
-    for (i = 0; i < game->moves.numChildren; ++i)
+    for (i = 0; i < genMoves->numChildren; ++i)
     {
     	int numMoves = 0;
     	char moveString[8];
-    	sprint_move(moveString, game->moves.children[i].move);
+    	sprint_move(moveString, genMoves->children[i].move);
+    	printf("%s ", moveString);
 
-    	make_move(&game->board, &game->moves.children[i].move);
-    	numMoves = board_perft(&game->board, &game->moves.children[i], level - 1);
-    	unmake_move(&game->board, game->moves.children[i].move);
+    	make_move(&game->board, &genMoves->children[i].move);
+    	numMoves = board_perft(&game->board, level - 1);
+    	unmake_move(&game->board, genMoves->children[i].move);
 
     	totalMoves += numMoves;
-    	printf("%s: %i\n", moveString, numMoves);
+    	printf("%i\n", numMoves);
     }
 
-    printf("\nMoves: %i\n", game->moves.numChildren);
+    printf("\nMoves: %i\n", genMoves->numChildren);
     printf("Nodes: %i\n", totalMoves);
 }
 
-int board_perft(Board* board, MoveNode* moves, int level)
+int board_perft(Board* board, int level)
 {
 	int i;
 	int perft = 0;
@@ -112,21 +106,16 @@ int board_perft(Board* board, MoveNode* moves, int level)
 		return 1;
 	}
 
-	if (!moves->children)
+	MoveNode* genMoves = generate_moves(board);
+
+	for (i = 0; i < genMoves->numChildren; ++i)
 	{
-		MoveNode* genMoves = generate_moves(board);
-		moves->children = genMoves->children;
-		moves->numChildren = genMoves->numChildren;
-		moves->maxChildren = genMoves->maxChildren;
-		free(genMoves);
+		make_move(board, &genMoves->children[i].move);
+		perft += board_perft(board, level - 1);
+		unmake_move(board, genMoves->children[i].move);
 	}
 
-	for (i = 0; i < moves->numChildren; ++i)
-	{
-		make_move(board, &moves->children[i].move);
-		perft += board_perft(board, &moves->children[i], level - 1);
-		unmake_move(board, moves->children[i].move);
-	}
+	free_move_node(genMoves);
 
 	return perft;
 }
@@ -536,7 +525,7 @@ void generate_rooks(Board* board, MoveNode* movenode,
 			add_move(movenode, move);
 
 			captures = clear_lsb(captures);
-		}		
+		}
 		allRooks = clear_lsb(allRooks);
 	}
 }
