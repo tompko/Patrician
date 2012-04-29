@@ -653,21 +653,25 @@ void generate_king(Board* board, MoveNode* movenode,
 
 int white_attacks_square(Board* board, int square)
 {
+	bitboard rookQueens = board->pieces[WHITE_ROOK] | board->pieces[WHITE_QUEEN];
+	bitboard bishQueens = board->pieces[WHITE_BISHOP] | board->pieces[WHITE_QUEEN];
+
 	return (pawnAttacks[BLACK][square] & board->pieces[WHITE_PAWN] ||
 		knightMoves[square] & board->pieces[WHITE_KNIGHT] ||
-		bishop_attacks(board->occupied, square) & board->pieces[WHITE_BISHOP] ||
-		rook_attacks(board->occupied, square) & board->pieces[WHITE_ROOK] ||
-		queen_attacks(board->occupied, square) & board->pieces[WHITE_QUEEN] ||
+		bishop_attacks(board->occupied, square) & bishQueens ||
+		rook_attacks(board->occupied, square) & rookQueens ||
 		kingMoves[square] & board->pieces[WHITE_KING]);
 }
 
 int black_attacks_square(Board* board, int square)
 {
+	bitboard rookQueens = board->pieces[BLACK_ROOK] | board->pieces[BLACK_QUEEN];
+	bitboard bishQueens = board->pieces[BLACK_BISHOP] | board->pieces[BLACK_QUEEN];
+
 	return (pawnAttacks[WHITE][square] & board->pieces[BLACK_PAWN] ||
 		knightMoves[square] & board->pieces[BLACK_KNIGHT] ||
-		bishop_attacks(board->occupied, square) & board->pieces[BLACK_BISHOP] ||
-		rook_attacks(board->occupied, square) & board->pieces[BLACK_ROOK] ||
-		queen_attacks(board->occupied, square) & board->pieces[BLACK_QUEEN] ||
+		bishop_attacks(board->occupied, square) & bishQueens ||
+		rook_attacks(board->occupied, square) & rookQueens ||
 		kingMoves[square] & board->pieces[BLACK_KING]);
 
 }
