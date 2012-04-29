@@ -57,4 +57,15 @@ INLINE unsigned long long clear_lsb(unsigned long long mask)
 	return mask & (mask - 1);
 }
 
+INLINE unsigned long long mirror_horizontal(unsigned long long mask)
+{
+	const unsigned long long k1 = 0x5555555555555555ull;
+	const unsigned long long k2 = 0x3333333333333333ull;
+	const unsigned long long k4 = 0x0f0f0f0f0f0f0f0full;
+	mask = ((mask >> 1) & k1) +  2*(mask & k1);
+	mask = ((mask >> 2) & k2) +  4*(mask & k2);
+	mask = ((mask >> 4) & k4) + 16*(mask & k4);
+	return mask;
+}
+
 #endif

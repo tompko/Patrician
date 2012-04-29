@@ -7,6 +7,8 @@
 #include "perftTest.h"
 #include "game.h"
 #include "bitscans.h"
+#include "gameTime.h"
+#include "evaluation.h"
 
 typedef struct
 {
@@ -17,6 +19,7 @@ typedef struct
 
 void help(const char * input);
 void test_perft(const char* input);
+void test_eval(const char* input);
 void set_fen(const char * input);
 void run_perft(const char * input);
 void run_divide(const char* input);
@@ -25,7 +28,7 @@ void new_game(const char* input);
 
 Game g_Game;
 
-#define NUM_COMMANDS (8)
+#define NUM_COMMANDS (9)
 Command userCommands[NUM_COMMANDS];
 
 void initCommands()
@@ -38,29 +41,33 @@ void initCommands()
 	userCommands[1].helpString = "Run the perft test suite on the move generator";
 	userCommands[1].function = test_perft;
 
-	userCommands[2].command = "fen";
-	userCommands[2].helpString = "Set the current position from the given FEN";
-	userCommands[2].function = set_fen;
+	userCommands[2].command = "evalTest";
+	userCommands[2].helpString = "Test the consistency of the evaluation function";
+	userCommands[2].function = test_eval;
 
-	userCommands[3].command = "perft";
-	userCommands[3].helpString = "Count the number of nodes at a given depth";
-	userCommands[3].function = run_perft;
+	userCommands[3].command = "fen";
+	userCommands[3].helpString = "Set the current position from the given FEN";
+	userCommands[3].function = set_fen;
 
-	userCommands[4].command = "divide";
-	userCommands[4].helpString = "Show the number of nodes per child move";
-	userCommands[4].function = run_divide;
+	userCommands[4].command = "perft";
+	userCommands[4].helpString = "Count the number of nodes at a given depth";
+	userCommands[4].function = run_perft;
 
-	userCommands[5].command = "display";
-	userCommands[5].helpString = "Display the current board";
-	userCommands[5].function = display;
+	userCommands[5].command = "divide";
+	userCommands[5].helpString = "Show the number of nodes per child move";
+	userCommands[5].function = run_divide;
 
-	userCommands[6].command = "new";
-	userCommands[6].helpString = "Start a new game";
-	userCommands[6].function = new_game;
+	userCommands[6].command = "display";
+	userCommands[6].helpString = "Display the current board";
+	userCommands[6].function = display;
 
-	userCommands[7].command = "quit";
-	userCommands[7].helpString = "Quit Patrician";
-	userCommands[7].function = 0;
+	userCommands[7].command = "new";
+	userCommands[7].helpString = "Start a new game";
+	userCommands[7].function = new_game;
+
+	userCommands[8].command = "quit";
+	userCommands[8].helpString = "Quit Patrician";
+	userCommands[8].function = 0;
 }
 
 int main(void)
@@ -142,11 +149,15 @@ void test_perft(const char* input)
 {
 	int i, j;
 	Game game;
+	Timer totalTimer, perftTimer;
+
 	game.moves.children = NULL;
 	UNUSED(input);
 
 	initPerftTests();
 	printf("\n\n\n");
+
+	start_timer(&totalTimer);
 
 	for (i = 0; i < NUM_PERFT_TESTS; ++i)
 	{
@@ -156,8 +167,13 @@ void test_perft(const char* input)
 		{
 			if (perftTests[i].perfts[j] >= 0)
 			{
-				int result = perft(&game, j+1);
-				printf("perft %i: %i (%i) %s\n", j+1, result, perftTests[i].perfts[j],
+				int result;
+
+				start_timer(&perftTimer);
+				result = perft(&game, j+1);
+				stop_timer(&perftTimer);
+
+				printf("perft %i: %i [%03fs] (%i) %s\n", j+1, result, get_elapsed_time(&perftTimer), perftTests[i].perfts[j],
 					result == perftTests[i].perfts[j] ? "PASS" : "FAIL");
 				if (result != perftTests[i].perfts[j])
 				{
@@ -169,6 +185,59 @@ void test_perft(const char* input)
 					return;
 				}
 			}
+		}
+		printf("\n");
+	}
+
+	stop_timer(&totalTimer);
+	printf("Perft suite finished in %03fs\n", get_elapsed_time(&totalTimer));
+}
+
+void test_eval(const char* input)
+{
+	int i, j;
+	Game game;
+
+	UNUSED(input);
+
+	initPerftTests();
+	printf("\n\n\n");
+
+	for(i = 0; i < NUM_PERFT_TESTS; ++i)
+	{
+		int score, mirrorScore, otherScore, otherMirrorScore;
+
+		set_game_from_FEN(&game, perftTests[i].FEN);
+
+		score = evaluate(&game.board);
+
+		game.board.sideToMove = 1 - game.board.sideToMove;
+
+		otherScore = -evaluate(&game.board);
+
+		for(j = 0; j < NUM_PIECES; ++j)
+		{
+			game.board.pieces[j] = mirror_horizontal(game.board.pieces[j]);
+		}
+
+		otherMirrorScore = -evaluate(&game.board);
+
+		game.board.sideToMove = 1 - game.board.sideToMove;
+
+		mirrorScore = evaluate(&game.board);
+
+		printf("%s: ", perftTests[i].FEN);
+
+		if(score != mirrorScore || mirrorScore != otherScore || otherScore != otherMirrorScore)
+		{
+			printf("FAIL\n");
+			printf("Score: %i\nMirror Score: %i\n", score, mirrorScore);
+			printf("Other Score: %i\nOther Mirror Score: %i\n", otherScore, otherMirrorScore);
+			return;
+		}
+		else
+		{
+			printf("PASS\n");
 		}
 	}
 }
