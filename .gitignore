@@ -15,3 +15,13 @@ bin
 obj
 *.pyc
 test/test.c
+
+# VS files    #
+###############
+*/Debug/
+*.ncb
+*.suo
+*.user
+*/x64
+*/*/Debug
+*/*/x64

@@ -4,7 +4,7 @@
 #include "board.h"
 #include "move.h"
 
-typedef struct
+typedef struct Game
 {
     Board board;
     MoveNode moves;

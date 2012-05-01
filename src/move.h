@@ -4,7 +4,7 @@
 #include "defines.h"
 #include <assert.h>
 
-typedef struct
+typedef struct Move
 {
     unsigned int to: 6;
     unsigned int from: 6;
@@ -20,6 +20,7 @@ typedef struct MoveNode
 	struct MoveNode * children;
 	int numChildren;
 	int maxChildren;
+	int score;
 } MoveNode;
 
 #define PROMOTION_FLAG (0x8)
