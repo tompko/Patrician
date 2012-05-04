@@ -1,14 +1,20 @@
 import itertools
+import sys
 from build import create_objs
 
 Import('common_files')
 main_files = ['main.c']
+lib_files = []
+c_flags = ""
 
-env = Environment(CCFLAGS='-Wall -ggdb')
+if sys.platform == 'win32':
+	c_flags = "/W4 /D_CRT_SECURE_NO_WARNINGS"
+
+env = Environment(CCFLAGS=c_flags)
 env.VariantDir(variant_dir='#obj/main', src_dir='#src', duplicate=False)
 
 main_build = ['#obj/main/' + p for p in itertools.chain(common_files, main_files)]
 
 env.Program(target='#bin/Patrician',
 			source=create_objs(env, main_build),
-			LIBS=['librt'])
+			LIBS=lib_files)
