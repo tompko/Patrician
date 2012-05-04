@@ -10,6 +10,16 @@ typedef struct Timer
 	LARGE_INTEGER stop;
 } Timer;
 
+#else
+
+#include <time.h>
+
+typedef struct Timer
+{
+	struct timespec start;
+	struct timespec stop;
+} Timer;
+
 #endif
 
 void start_timer(Timer* timer);

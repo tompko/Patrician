@@ -21,4 +21,23 @@ double get_elapsed_time(const Timer* timer)
 	return (double)(timer->stop.QuadPart - timer->start.QuadPart) / (double)(freq.QuadPart);
 }
 
+#else
+#include <time.h>
+
+void start_timer(Timer* timer)
+{
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->start);
+}
+
+void stop_timer(Timer* timer)
+{
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer->stop);
+}
+
+double get_elapsed_time(const Timer* timer)
+{
+	return (double)(timer->stop.tv_sec - timer->start.tv_sec) + 
+	(double)(timer->stop.tv_nsec - timer->start.tv_nsec) / 1000000000.0;
+}
+
 #endif
