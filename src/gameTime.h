@@ -26,4 +26,5 @@ void start_timer(Timer* timer);
 void stop_timer(Timer* timer);
 double get_elapsed_time(const Timer* timer);
 
+const char* parse_time(const char* timeString, int* minutes, int*seconds);
 #endif

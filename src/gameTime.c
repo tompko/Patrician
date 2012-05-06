@@ -41,3 +41,25 @@ double get_elapsed_time(const Timer* timer)
 }
 
 #endif
+
+const char* parse_time(const char* timeString, int* minutes, int*seconds)
+{
+	const char * data = timeString;
+
+	*minutes = atoi(data);
+
+	while(*data && *data != ' ' && *data != ':')
+	{
+		++data;
+	}
+
+	if(*data == ':')
+	{
+		*seconds = atoi(data);
+		while(*data && *data != ' ')
+		{
+			++data;
+		}
+	}
+	return ++data;
+}
