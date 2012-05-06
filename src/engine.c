@@ -2,6 +2,8 @@
 
 #ifdef _MSC_VER
 #include <Windows.h>
+#else
+#include <pthread.h>
 #endif
 
 #include <stdlib.h>
@@ -49,6 +51,14 @@ DWORD WINAPI engine_thread_wrapper(LPVOID lpParameter)
 {
 	engine_thread();
 	return 0;
+}
+#else
+pthread_t EngineThread;
+
+void* engine_thread_wrapper(void* ptr)
+{
+	engine_thread();
+	return 0;	
 }
 #endif
 
@@ -127,6 +137,8 @@ void start_engine_thread()
 	s_EngineState = ENGINE_OBSERVING;
 #ifdef _MSC_VER
 	EngineThreadHandle = CreateThread(NULL, 0, engine_thread_wrapper, NULL, 0, NULL);
+#else
+	int ret = pthread_create(&EngineThread, NULL, engine_thread_wrapper, NULL);
 #endif
 }
 
