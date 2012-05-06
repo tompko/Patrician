@@ -135,6 +135,10 @@ void set_opponent_name(const char * name)
 void start_engine_thread()
 {
 	s_EngineState = ENGINE_OBSERVING;
+	s_GameMoves.moves = malloc(sizeof(Move)*60);
+	s_GameMoves.numMoves = 0;
+	s_GameMoves.maxMoves = 60;
+
 #ifdef _MSC_VER
 	EngineThreadHandle = CreateThread(NULL, 0, engine_thread_wrapper, NULL, 0, NULL);
 #else
@@ -220,7 +224,9 @@ void engine_thread(void)
 				make_move(&s_CurrentBoard, &move);
 				add_move_to_stack(move);
 				sprint_move(moveBuffer, move);
-				printf("\nmove %s\n", moveBuffer);
+				printf("# About to make move\n");
+				printf("move %s\n", moveBuffer);
+				printf("# Made move\n");
 
 				if(s_CanPonder)
 				{

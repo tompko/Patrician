@@ -44,6 +44,8 @@ Game g_Game;
 Command userCommands[NUM_COMMANDS];
 enum InputMode inputMode = MODE_SINGLELINE;
 
+FILE* file;
+
 int main(void)
 {
 	int done = 0;
@@ -60,12 +62,14 @@ int main(void)
 	initCommands();
 
 	remove("winboard.txt");
+	file = fopen("winboard.txt", "w");
 
 	while(!done)
 	{
 		switch(inputMode)
 		{
 			case MODE_SINGLELINE:
+
 				done = singleLineInput();
 				break;
 			case MODE_XBOARD:
@@ -73,6 +77,8 @@ int main(void)
 				break;
 		}
 	}
+
+	fclose(file);
 
 	return 0;
 }
@@ -175,17 +181,16 @@ int singleLineInput()
 int xboardInput()
 {
 	char input[512] = "";
-	FILE* file = fopen("winboard.txt", "a");
 
 	gets(input);
-
+	printf("# >>> %s\n", input);
 	fprintf(file, ">>> %s\n", input);
+	fflush(file);
 
 	if(!strncmp(input, "protover", 8))
 	{
 		// Send a string describing the features we support
-		fprintf(file, "<<< %s\n", "feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 memory=1 smp=0 done=1\n");
-		printf("feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 debug=1 memory=1 smp=0 done=1\n");
+		printf("feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 sigint=0 sigterm=0 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 debug=1 memory=1 smp=0 done=1\n");
 	}
 	else if(!strcmp(input, "new"))
 	{
@@ -248,7 +253,7 @@ int xboardInput()
 	else if(!strncmp(input, "ping", 4))
 	{
 		fprintf(file, "<<< pong%s\n", input+4);
-		printf("pong%s", input+4);
+		printf("pong%s\n", input+4);
 	}
 	else if(!strncmp(input, "name", 4))
 	{
@@ -282,8 +287,6 @@ int xboardInput()
 	{
 		exit(0);
 	}
-
-	fclose(file);
 
 	return 0;
 }
