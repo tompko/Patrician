@@ -10,6 +10,7 @@
 #include "gameTime.h"
 #include "evaluation.h"
 #include "engine.h"
+#include "debug_log.h"
 
 typedef struct
 {
@@ -51,15 +52,14 @@ int main(void)
 	  for the xboard protocol*/
 	setbuf(stdout, NULL);
 
+	INIT_LOG();
+	initCommands();
+
 	start_engine_thread();
 
 	printf("Patrician version 0.01\n");
 	printf("Copyright (C) 2012 Chris Tompkinson\n");
 	printf("\n");
-
-	initCommands();
-
-	remove("winboard.txt");
 
 	while(!done)
 	{
@@ -73,6 +73,8 @@ int main(void)
 				break;
 		}
 	}
+
+	RELEASE_LOG();
 
 	return 0;
 }
@@ -124,6 +126,8 @@ int singleLineInput()
 	printf("patrician: ");
 	gets(input);
 
+	LOG("input", input);
+
 	if(!strcmp(input, "quit"))
 	{
 		return 1;
@@ -166,6 +170,7 @@ int singleLineInput()
 	}
 	else if (!validCommand)
 	{
+		LOG("urecognised", input);
 		printf("Unrecognised command: %s\n", input);
 	}
 
@@ -175,16 +180,14 @@ int singleLineInput()
 int xboardInput()
 {
 	char input[512] = "";
-	FILE* file = fopen("winboard.txt", "a");
 
 	gets(input);
 
-	fprintf(file, ">>> %s\n", input);
+	LOG("xboard_input", input);
 
 	if(!strncmp(input, "protover", 8))
 	{
 		// Send a string describing the features we support
-		fprintf(file, "<<< %s\n", "feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 memory=1 smp=0 done=1\n");
 		printf("feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 debug=1 memory=1 smp=0 done=1\n");
 	}
 	else if(!strcmp(input, "new"))
@@ -247,7 +250,6 @@ int xboardInput()
 	}
 	else if(!strncmp(input, "ping", 4))
 	{
-		fprintf(file, "<<< pong%s\n", input+4);
 		printf("pong%s", input+4);
 	}
 	else if(!strncmp(input, "name", 4))
@@ -280,10 +282,9 @@ int xboardInput()
 	}
 	else
 	{
+		LOG("xboard_unrecognised", input);
 		exit(0);
 	}
-
-	fclose(file);
 
 	return 0;
 }
