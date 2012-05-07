@@ -9,6 +9,9 @@ c_flags = ""
 
 if sys.platform == 'win32':
 	c_flags = "/W4 /D_CRT_SECURE_NO_WARNINGS"
+elif sys.platform == "linux2":
+	lib_files.append("librt")
+	c_flags = "-Wall -g -ggdb"
 
 env = Environment(CCFLAGS=c_flags)
 env.VariantDir(variant_dir='#obj/main', src_dir='#src', duplicate=False)

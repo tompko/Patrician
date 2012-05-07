@@ -45,6 +45,8 @@ Game g_Game;
 Command userCommands[NUM_COMMANDS];
 enum InputMode inputMode = MODE_SINGLELINE;
 
+FILE* file;
+
 int main(void)
 {
 	int done = 0;
@@ -66,6 +68,7 @@ int main(void)
 		switch(inputMode)
 		{
 			case MODE_SINGLELINE:
+
 				done = singleLineInput();
 				break;
 			case MODE_XBOARD:
@@ -188,7 +191,7 @@ int xboardInput()
 	if(!strncmp(input, "protover", 8))
 	{
 		// Send a string describing the features we support
-		printf("feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 debug=1 memory=1 smp=0 done=1\n");
+		printf("feature done=0 ping=1 setboard=1 playother=1 san=0 usermove=1 time=1 sigint=0 sigterm=0 draw=1 reuse=1 analyze=0 myname=\"Patrician\" variants=\"normal\" colors=0 ics=1 name=1 pause=1 nps=0 debug=1 memory=1 smp=0 done=1\n");
 	}
 	else if(!strcmp(input, "new"))
 	{
