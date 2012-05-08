@@ -87,7 +87,7 @@ typedef struct Board
 int set_from_FEN(Board* board, const char* FEN);
 
 void print_board(Board* board);
-void log_board(const char* filename, Board* board);
+void log_board(Board* board);
 
 void push_state(Board* board);
 void pop_state(Board* board);

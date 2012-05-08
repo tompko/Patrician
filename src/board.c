@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "bitscans.h"
+#include "debug_log.h"
 
 char * strSquare[] = {
 "a1","b1","c1","d1","e1","f1","g1","h1",
@@ -101,8 +102,6 @@ bitboard backranks[] =
     0xFF00000000000000,
     0x00000000000000FF
 };
-
-void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol);
 
 int set_from_FEN(Board* board, const char* FEN)
 {
@@ -379,56 +378,16 @@ void print_board(Board* board)
     printf("castling: %s, ep-file: %s\n", castlingBuf, enPassant);
 }
 
-void log_board(const char* filename, Board* board)
+void log_board(Board* board)
 {
-    FILE* file = fopen(filename, "w");
-
-    log_bitboard(file, board->pieces[WHITE_PAWN], "white pawn", 'P');
-    log_bitboard(file, board->pieces[WHITE_KNIGHT], "white knight", 'N');
-    log_bitboard(file, board->pieces[WHITE_BISHOP], "white bishop", 'B');
-    log_bitboard(file, board->pieces[WHITE_ROOK], "white rook", 'R');
-    log_bitboard(file, board->pieces[WHITE_QUEEN], "white queen", 'Q');
-    log_bitboard(file, board->pieces[WHITE_KING], "white king", 'K');
-    log_bitboard(file, board->pieces[BLACK_PAWN], "black pawn", 'p');
-    log_bitboard(file, board->pieces[BLACK_KNIGHT], "black knight", 'n');
-    log_bitboard(file, board->pieces[BLACK_BISHOP], "black bishop", 'b');
-    log_bitboard(file, board->pieces[BLACK_ROOK], "black rook", 'r');
-    log_bitboard(file, board->pieces[BLACK_QUEEN], "black queen", 'q');
-    log_bitboard(file, board->pieces[BLACK_KING], "black king", 'k');
-
-    log_bitboard(file, board->sides[WHITE], "white pieces", 'W');
-    log_bitboard(file, board->sides[BLACK], "black pieces", 'B');
-
-    log_bitboard(file, board->occupied, "occupied", '#');
-    log_bitboard(file, board->empty, "empty", '#');
-
-    fprintf(file, "enPassant: 0x%016llx\n", board->enPassant);
-    fprintf(file, "move: %s\n", board->sideToMove ? "white" : "black");
-
-    fclose(file);
-}
-
-void log_bitboard(FILE* file, bitboard bb, const char* name, char symbol)
-{
-    int ra, fi;
-    fprintf(file, "%s:\n", name);
-
-    for (ra = 7; ra >= 0; --ra)
-    {
-        for (fi = 0; fi < 8; ++fi)
-        {
-            if (bb & (1ull << (ra*8 + fi)))
-            {
-                fprintf(file, "%c", symbol);
-            }
-            else
-            {
-                fprintf(file, "%c", '.');
-            }
-        }
-        fprintf(file, "\n");
-    }
-    fprintf(file, "\n");
+    char boardBuffer[1024];
+    sprintf(boardBuffer, "{\"wp\": 0x%016xull, \"wn\": 0x%016xull, \"wb\": 0x%016xull, \"wr\": 0x%016xull, \"wq\": 0x%016xull, \"wk\": 0x%016xull, \"bp\": 0x%016xull, \"bn\": 0x%016xull, \"bb\": 0x%016xull, \"br\": 0x%016xull, \"bq\": 0x%016xull, \"bk\": 0x%016xull, \"ws\": 0x%016xull, \"bs\": 0x%016xull, \"oo\": 0x%016xull, \"ee\": 0x%016xull, \"ep\": 0x%016xull, \"si\": %s}",
+        board->pieces[WHITE_PAWN], board->pieces[WHITE_KNIGHT], board->pieces[WHITE_BISHOP],
+        board->pieces[WHITE_ROOK], board->pieces[WHITE_QUEEN], board->pieces[WHITE_KING],
+        board->pieces[BLACK_PAWN], board->pieces[BLACK_KNIGHT], board->pieces[BLACK_BISHOP],
+        board->pieces[BLACK_ROOK], board->pieces[BLACK_QUEEN], board->pieces[BLACK_KING],
+        board->sides[WHITE], board->sides[BLACK], board->occupied, board->empty,
+        board->enPassant, board->sideToMove == WHITE ? "white" : "black");
 }
 
 void push_state(Board* board)

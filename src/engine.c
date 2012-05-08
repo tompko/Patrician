@@ -201,9 +201,6 @@ void engine_undo(void)
 
 void engine_thread(void)
 {
-	FILE * fout = fopen("Engine.txt", "w");
-	fprintf(fout, "Engine Started\n");
-
 	while(s_EngineState != ENGINE_QUIT)
 	{
 		switch(s_EngineState)
@@ -224,9 +221,7 @@ void engine_thread(void)
 				make_move(&s_CurrentBoard, &move);
 				add_move_to_stack(move);
 				sprint_move(moveBuffer, move);
-				printf("# About to make move\n");
 				printf("move %s\n", moveBuffer);
-				printf("# Made move\n");
 
 				if(s_CanPonder)
 				{

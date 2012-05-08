@@ -203,6 +203,7 @@ int xboardInput()
 	{
 		// Set the size of memory we're allowed to use for our hash tables etc.
 		int megaBytes = atoi(input + 7);
+		set_memory_limit(megaBytes);
 	}
 	else if(!strcmp(input, "random"))
 	{
