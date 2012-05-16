@@ -380,14 +380,26 @@ void print_board(Board* board)
 
 void log_board(Board* board)
 {
-    char boardBuffer[1024];
-    sprintf(boardBuffer, "{\"wp\": 0x%016xull, \"wn\": 0x%016xull, \"wb\": 0x%016xull, \"wr\": 0x%016xull, \"wq\": 0x%016xull, \"wk\": 0x%016xull, \"bp\": 0x%016xull, \"bn\": 0x%016xull, \"bb\": 0x%016xull, \"br\": 0x%016xull, \"bq\": 0x%016xull, \"bk\": 0x%016xull, \"ws\": 0x%016xull, \"bs\": 0x%016xull, \"oo\": 0x%016xull, \"ee\": 0x%016xull, \"ep\": 0x%016xull, \"si\": %s}",
+    char* boardBuffer = malloc(sizeof(char)*1024);
+
+    sprintf(boardBuffer, "{\\\"wp\\\": \\\"0x%016llx\\\", \\\"wn\\\": \\\"0x%016llx\\\", "
+        "\\\"wb\\\": \\\"0x%016llx\\\", \\\"wr\\\": \\\"0x%016llx\\\", "
+        "\\\"wq\\\": \\\"0x%016llx\\\", \\\"wk\\\": \\\"0x%016llx\\\", "
+        "\\\"bp\\\": \\\"0x%016llx\\\", \\\"bn\\\": \\\"0x%016llx\\\", "
+        "\\\"bb\\\": \\\"0x%016llx\\\", \\\"br\\\": \\\"0x%016llx\\\", "
+        "\\\"bq\\\": \\\"0x%016llx\\\", \\\"bk\\\": \\\"0x%016llx\\\", "
+        "\\\"ws\\\": \\\"0x%016llx\\\", \\\"bs\\\": \\\"0x%016llx\\\", "
+        "\\\"oo\\\": \\\"0x%016llx\\\", \\\"ee\\\": \\\"0x%016llx\\\", "
+        "\\\"ep\\\": \\\"0x%016llx\\\", \\\"si\\\": \\\"%s\\\"}",
         board->pieces[WHITE_PAWN], board->pieces[WHITE_KNIGHT], board->pieces[WHITE_BISHOP],
         board->pieces[WHITE_ROOK], board->pieces[WHITE_QUEEN], board->pieces[WHITE_KING],
         board->pieces[BLACK_PAWN], board->pieces[BLACK_KNIGHT], board->pieces[BLACK_BISHOP],
         board->pieces[BLACK_ROOK], board->pieces[BLACK_QUEEN], board->pieces[BLACK_KING],
         board->sides[WHITE], board->sides[BLACK], board->occupied, board->empty,
         board->enPassant, board->sideToMove == WHITE ? "white" : "black");
+    LOG("board", boardBuffer);
+
+    free(boardBuffer);
 }
 
 void push_state(Board* board)

@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>Patrician Log</title>
+    <script src="html_tt_chess.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="html_tt_chess.css" />
+    <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/smoothness/jquery-ui.css" />
+
+    <script>
+    $(document).ready(function() {
+    	console.log("Hello World"); // This is more like it!
+  	});
+  	$(function() {
+		$( "#accordion" ).accordion({
+            autoHeight: false,
+            collapsible: true
+        });
+	});
+    </script>
+
+    <style type="text/css">
+        .error {background: red;}
+
+        .ui-widget {font-size: 0.8em;}
+    </style>
+</head>
+<body onload="parseChess()">
+
+<div id="accordion">

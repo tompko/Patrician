@@ -254,7 +254,7 @@ int xboardInput()
 	}
 	else if(!strncmp(input, "ping", 4))
 	{
-		printf("pong%s", input+4);
+		printf("pong%s\n", input+4);
 	}
 	else if(!strncmp(input, "name", 4))
 	{
@@ -283,6 +283,10 @@ int xboardInput()
 	else if(!strcmp(input, "undo"))
 	{
 		engine_undo();
+	}
+	else if(!strcmp(input, "quit"))
+	{
+		return 1;
 	}
 	else
 	{

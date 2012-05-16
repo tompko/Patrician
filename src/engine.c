@@ -49,6 +49,7 @@ HANDLE EngineThreadHandle;
 
 DWORD WINAPI engine_thread_wrapper(LPVOID lpParameter)
 {
+	UNUSED(lpParameter);
 	engine_thread();
 	return 0;
 }
@@ -64,7 +65,7 @@ void* engine_thread_wrapper(void* ptr)
 
 void set_memory_limit(int megabytes)
 {
-
+	UNUSED(megabytes);
 }
 
 void set_random_mode(int random)
@@ -92,25 +93,30 @@ void set_ics_mode(int mode)
 void set_mps(int mps)
 {
 	//Do nothing until we implement time controls and management
+	UNUSED(mps);
 }
 
 void set_base_time(int minutes, int seconds)
 {
 	//Do nothing until we implement time controls and management
+	UNUSED(minutes); UNUSED(seconds);
 }
 
 void set_inc_time(int minutes, int seconds)
 {
 	//Do nothing until we implement time controls and management
+	UNUSED(minutes); UNUSED(seconds);
 }
 
 void set_engine_time(const char* centiseconds)
 {
 	//Do nothing until we implement time controls and management
+	UNUSED(centiseconds);
 }
 void set_opponent_time(const char* centiseconds)
 {
 	//Do nothing until we implement time controls and management
+	UNUSED(centiseconds);
 }
 
 void set_show_thinking(int showThinking)
@@ -122,6 +128,7 @@ void set_pondering(int ponder)
 {
 	//We don't support pondering at the moment, so ignore this command
 	//and set can ponder to false
+	UNUSED(ponder);
 	s_CanPonder = 0;//ponder;
 }
 
@@ -155,9 +162,12 @@ void engine_new_game()
 void engine_force_move(const char* moveString)
 {
 	Move move =  make_move_from_str(&s_CurrentBoard, moveString);
+	log_board(&s_CurrentBoard);
+	log_move(move, moveString, "usermove");
 	make_move(&s_CurrentBoard, &move);
 	add_move_to_stack(move);
-
+	log_board(&s_CurrentBoard);
+	
 	if(s_EngineState == ENGINE_WAITING)
 	{
 		s_EngineState = ENGINE_THINKING;
@@ -166,7 +176,7 @@ void engine_force_move(const char* moveString)
 
 void engine_set_result(const char* result)
 {
-
+	UNUSED(result);
 }
 
 void engine_force_mode()

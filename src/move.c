@@ -7,6 +7,7 @@
 #include "move.h"
 #include "board.h"
 #include "bitscans.h"
+#include "debug_log.h"
 
 static int promotionPieces[] = {KNIGHT, BISHOP, ROOK, QUEEN};
 
@@ -56,6 +57,28 @@ Move make_move_from_str(Board* board, const char* moveStr)
     {
         move.flags |= SPECIAL0_FLAG;
     }
+    if (move.piece == WHITE_KING && move.from == E1)
+    {
+        if (move.to == G1)
+        {
+            move.flags = SPECIAL1_FLAG;
+        }
+        else if (move.to == C1)
+        {
+            move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
+        }
+    }
+    if (move.piece == BLACK_KING && move.from == E8)
+    {
+        if (move.to == G8)
+        {
+            move.flags = SPECIAL1_FLAG;
+        }
+        else if (move.to == C8)
+        {
+            move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
+        }
+    }
     move.side = move.piece % 2;
     return move;
 }
@@ -87,6 +110,46 @@ int is_move(const char* moveStr)
 void sprint_move(char* buffer, Move move)
 {
     sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
+}
+
+void log_move(Move move, const char* moveString, const char* moveType)
+{
+    char* moveBuffer = (char*)malloc(sizeof(char)*1024);
+    char* flagBuffer = (char*)malloc(sizeof(char)*256);
+
+    strcpy(flagBuffer, "[");
+    if ((move.flags & PROMOTION_FLAG) == PROMOTION_FLAG)
+    {
+        strcat(flagBuffer, "\\\"promotion\\\",");
+    }
+    if ((move.flags & CAPTURE_FLAG) == CAPTURE_FLAG)
+    {
+        strcat(flagBuffer, "\\\"capture\\\",");
+    }
+    if ((move.flags & SPECIAL1_FLAG) == SPECIAL1_FLAG)
+    {
+        strcat(flagBuffer, "\\\"special1\\\",");
+    }
+    if ((move.flags & SPECIAL0_FLAG) == SPECIAL0_FLAG)
+    {
+        strcat(flagBuffer, "\\\"special0\\\",");
+    }
+    if (flagBuffer[strlen(flagBuffer) - 1] == ',')
+    {
+        flagBuffer[strlen(flagBuffer) - 1] = 0;
+    }
+    strcat(flagBuffer, "]");
+
+    sprintf(moveBuffer, "{\\\"to\\\": %i, \\\"from\\\": %i, "
+        "\\\"piece\\\": %i, \\\"flags\\\": %s, "
+        "\\\"capturedPiece\\\": %i, \\\"side\\\": \\\"%s\\\", "
+        "\\\"move_string\\\": \\\"%s\\\", \\\"move_type\\\": \\\"%s\\\"}", 
+        move.to, move.from, move.piece, flagBuffer, move.capturedPiece,
+        move.side == WHITE ? "white" : "black", moveString, moveType);
+    LOG("move", moveBuffer);
+
+    free(flagBuffer);
+    free(moveBuffer);
 }
 
 void make_move(Board* board, Move* move)
