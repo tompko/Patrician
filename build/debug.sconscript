@@ -8,7 +8,7 @@ lib_files = []
 c_flags = ""
 
 if sys.platform == 'win32':
-	c_flags = "/W4 /D_CRT_SECURE_NO_WARNINGS"
+	c_flags = "/nologo /WX /W4 /D_CRT_SECURE_NO_WARNINGS"
 elif sys.platform == "linux2":
 	lib_files.append("librt")
 	c_flags = "-Wall -g -ggdb"
