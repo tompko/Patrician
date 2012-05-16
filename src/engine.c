@@ -229,6 +229,7 @@ void engine_thread(void)
 				char moveBuffer[16];
 
 				make_move(&s_CurrentBoard, &move);
+				log_move(move, "", "enginemove");
 				add_move_to_stack(move);
 				sprint_move(moveBuffer, move);
 				printf("move %s\n", moveBuffer);
