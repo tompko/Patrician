@@ -57,6 +57,26 @@ Move make_move_from_str(Board* board, const char* moveStr)
     {
         move.flags |= SPECIAL0_FLAG;
     }
+    if ((move.piece == WHITE_PAWN && (1ull << move.to) & ranks[7])
+        || (move.piece == BLACK_PAWN && (1ull << move.to) & ranks[0]))
+    {
+        move.flags |= PROMOTION_FLAG;
+        switch(moveStr[4])
+        {
+            case 'q':
+            case 'Q':
+                move.flags |= SPECIAL1_FLAG | SPECIAL0_FLAG;
+                break;
+            case 'r':
+            case 'R':
+                move.flags |= SPECIAL1_FLAG;
+                break;
+            case 'b':
+            case 'B':
+                move.flags |= SPECIAL0_FLAG;
+                break;
+        }
+    }
     if (move.piece == WHITE_KING && move.from == E1)
     {
         if (move.to == G1)
