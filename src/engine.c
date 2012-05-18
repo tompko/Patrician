@@ -207,6 +207,10 @@ void engine_undo(void)
 	{
 		s_EngineState = ENGINE_THINKING;
 	}
+	else
+	{
+		s_EngineState = currState;
+	}
 }
 
 void engine_thread(void)
@@ -227,6 +231,12 @@ void engine_thread(void)
 			{
 				Move move = root_search(&s_CurrentBoard);
 				char moveBuffer[16];
+
+				if (s_EngineState != ENGINE_THINKING)
+				{
+					//Our thinking has been interrupted
+					break;
+				}
 
 				make_move(&s_CurrentBoard, &move);
 				log_move(move, "", "enginemove");
