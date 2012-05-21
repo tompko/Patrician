@@ -49,9 +49,12 @@ def move_to_fen(move):
 		for fi in range(8):
 			square_index = ra*8 + fi
 			if square_index == move["to"]:
-				fen += "(.)"
+				if "capture" in move["flags"]:
+					fen += "({0})".format(piece_list[move["capturedPiece"]])
+				else:
+					fen += "(.)"
 			elif square_index == move["from"]:
-				fen += "({0})".format(piece_list[move["piece"]])
+				fen += "{0}".format(piece_list[move["piece"]])
 			else:
 				fen += "."
 		fen += "/"
