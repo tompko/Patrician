@@ -260,6 +260,10 @@ int xboardInput()
 	{
 		set_opponent_name(input+5);
 	}
+	else if (!strcmp(input, "computer"))
+	{
+		//do nothing for now
+	}
 	else if(!strncmp(input, "time", 4))
 	{
 		set_engine_time(input+5);
@@ -279,6 +283,10 @@ int xboardInput()
 	else if(!strcmp(input, "force"))
 	{
 		engine_force_mode();
+	}
+	else if(!strcmp(input, "go"))
+	{
+		engine_go();
 	}
 	else if(!strcmp(input, "undo"))
 	{

@@ -213,6 +213,11 @@ void engine_undo(void)
 	}
 }
 
+void engine_go(void)
+{
+	s_EngineState = ENGINE_THINKING;
+}
+
 void engine_thread(void)
 {
 	while(s_EngineState != ENGINE_QUIT)

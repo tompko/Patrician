@@ -28,5 +28,6 @@ void engine_force_move(const char* moveString);
 void engine_set_result(const char* result);
 void engine_force_mode(void);
 void engine_undo(void);
+void engine_go(void);
 
 #endif
