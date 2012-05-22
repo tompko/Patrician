@@ -8,16 +8,16 @@ lib_files = []
 c_flags = ""
 
 if sys.platform == 'win32':
-	c_flags = "/nologo /Od /WX /W4 /D_CRT_SECURE_NO_WARNINGS"
+	c_flags = "/nologo /O2 /WX /W4 /D_CRT_SECURE_NO_WARNINGS /DNDEBUG"
 elif sys.platform == "linux2":
 	lib_files.append("librt")
 	c_flags = "-Wall -g -ggdb"
 
 env = Environment(CCFLAGS=c_flags, CPPPATH="#src")
-env.VariantDir(variant_dir='#obj/debug', src_dir='#src', duplicate=False)
+env.VariantDir(variant_dir='#obj/release', src_dir='#src', duplicate=False)
 
-main_build = ['#obj/debug/' + p for p in itertools.chain(common_files, main_files)]
+main_build = ['#obj/release/' + p for p in itertools.chain(common_files, main_files)]
 
-env.Program(target='#bin/debug',
+env.Program(target='#bin/Patrician',
 			source=create_objs(env, main_build),
 			LIBS=lib_files)

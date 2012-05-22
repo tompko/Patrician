@@ -25,3 +25,8 @@ test/test.c
 */x64
 */*/Debug
 */*/x64
+
+# Logging     #
+###############
+patrician_log*.dat
+logs/log*.html
