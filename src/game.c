@@ -36,12 +36,6 @@ void generate_king(Board* board, MoveNode* movenode,
 int white_attacks_square(Board* board, int square);
 int black_attacks_square(Board* board, int square);
 
-int set_game_from_FEN(Game* game, const char* FEN)
-{
-    int ret = set_from_FEN(&game->board, FEN);
-    return ret;
-}
-
 MoveNode* generate_moves(Board* board)
 {
 	MoveNode* ret = (MoveNode*)malloc(sizeof(MoveNode));
@@ -61,12 +55,12 @@ MoveNode* generate_moves(Board* board)
 	return ret;
 }
 
-int perft(Game* game, int level)
+int perft(Board* board, int level)
 {
-    return board_perft(&game->board, level);
+    return board_perft(board, level);
 }
 
-void divide(Game* game, int level)
+void divide(Board* board, int level)
 {
 	int i, totalMoves = 0;
 	MoveNode* genMoves;
@@ -76,7 +70,7 @@ void divide(Game* game, int level)
     	return;
     }
 
-    genMoves = generate_moves(&game->board);
+    genMoves = generate_moves(board);
 
     for (i = 0; i < genMoves->numChildren; ++i)
     {
@@ -85,9 +79,9 @@ void divide(Game* game, int level)
     	sprint_move(moveString, genMoves->children[i].move);
     	printf("%s ", moveString);
 
-    	make_move(&game->board, &genMoves->children[i].move);
-    	numMoves = board_perft(&game->board, level - 1);
-    	unmake_move(&game->board, genMoves->children[i].move);
+    	make_move(board, &genMoves->children[i].move);
+    	numMoves = board_perft(board, level - 1);
+    	unmake_move(board, genMoves->children[i].move);
 
     	totalMoves += numMoves;
     	printf("%i\n", numMoves);

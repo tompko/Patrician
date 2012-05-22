@@ -39,7 +39,7 @@ void run_divide(const char* input);
 void display(const char* input);
 void new_game(const char* input);
 
-Game g_Game;
+static Board s_Board;
 
 #define NUM_COMMANDS (9)
 Command userCommands[NUM_COMMANDS];
@@ -165,11 +165,8 @@ int singleLineInput()
 	}
 	else if(is_move(input))
 	{
-		Move move = make_move_from_str(&g_Game.board, input);
-		make_move(&g_Game.board, &move);
-		g_Game.moves.children = NULL;
-		g_Game.moves.numChildren = 0;
-		g_Game.moves.maxChildren = 0;
+		Move move = make_move_from_str(&s_Board, input);
+		make_move(&s_Board, &move);
 	}
 	else if (!validCommand)
 	{
@@ -319,10 +316,8 @@ void help(const char* input)
 void test_perft(const char* input)
 {
 	int i, j;
-	Game game;
+	Board board;
 	Timer totalTimer, perftTimer;
-
-	game.moves.children = NULL;
 	UNUSED(input);
 
 	initPerftTests();
@@ -333,7 +328,7 @@ void test_perft(const char* input)
 	for (i = 0; i < NUM_PERFT_TESTS; ++i)
 	{
 		printf("%i/%i FEN: %s\n", i+1, NUM_PERFT_TESTS, perftTests[i].FEN);
-		set_game_from_FEN(&game, perftTests[i].FEN);
+		set_from_FEN(&board, perftTests[i].FEN);
 		for (j = 0; j < 6; ++j)
 		{
 			if (perftTests[i].perfts[j] >= 0)
@@ -341,7 +336,7 @@ void test_perft(const char* input)
 				int result;
 
 				start_timer(&perftTimer);
-				result = perft(&game, j+1);
+				result = perft(&board, j+1);
 				stop_timer(&perftTimer);
 
 				printf("perft %i: %i [%03fs] (%i) %s\n", j+1, result, get_elapsed_time(&perftTimer), perftTests[i].perfts[j],
@@ -367,7 +362,7 @@ void test_perft(const char* input)
 void test_eval(const char* input)
 {
 	int i, j;
-	Game game;
+	Board board;
 
 	UNUSED(input);
 
@@ -378,24 +373,24 @@ void test_eval(const char* input)
 	{
 		int score, mirrorScore, otherScore, otherMirrorScore;
 
-		set_game_from_FEN(&game, perftTests[i].FEN);
+		set_from_FEN(&board, perftTests[i].FEN);
 
-		score = evaluate(&game.board);
+		score = evaluate(&board);
 
-		game.board.sideToMove = 1 - game.board.sideToMove;
+		board.sideToMove = 1 - board.sideToMove;
 
-		otherScore = -evaluate(&game.board);
+		otherScore = -evaluate(&board);
 
 		for(j = 0; j < NUM_PIECES; ++j)
 		{
-			game.board.pieces[j] = mirror_horizontal(game.board.pieces[j]);
+			board.pieces[j] = mirror_horizontal(board.pieces[j]);
 		}
 
-		otherMirrorScore = -evaluate(&game.board);
+		otherMirrorScore = -evaluate(&board);
 
-		game.board.sideToMove = 1 - game.board.sideToMove;
+		board.sideToMove = 1 - board.sideToMove;
 
-		mirrorScore = evaluate(&game.board);
+		mirrorScore = evaluate(&board);
 
 		printf("%s: ", perftTests[i].FEN);
 
@@ -415,14 +410,14 @@ void test_eval(const char* input)
 
 void set_fen(const char * input)
 {
-	set_game_from_FEN(&g_Game, input);
+	set_from_FEN(&s_Board, input);
 }
 
 void run_perft(const char * input)
 {
 	int level = atoi(input);
 
-	int result = perft(&g_Game, level);
+	int result = perft(&s_Board, level);
 
 	printf("perft %i: %i\n", level, result);
 }
@@ -431,17 +426,17 @@ void run_divide(const char* input)
 {
 	int level = atoi(input);
 
-	divide(&g_Game, level);
+	divide(&s_Board, level);
 }
 
 void display(const char* input)
 {
 	UNUSED(input);
-	print_board(&g_Game.board);
+	print_board(&s_Board);
 }
 
 void new_game(const char* input)
 {
 	UNUSED(input);
-	set_game_from_FEN(&g_Game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	set_from_FEN(&s_Board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
