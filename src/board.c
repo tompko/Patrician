@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "hashing/zobrist.h"
 #include "bitscans.h"
 #include "debug_log.h"
 
@@ -317,6 +318,8 @@ int set_from_FEN(Board* board, const char* FEN)
     while(*FEN++ != ' ');
 
     board->move = atoi(FEN);
+
+    board->zobrist = calculate_zobrist(board);
 
     return 1;
 }

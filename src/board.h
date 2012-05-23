@@ -75,6 +75,7 @@ typedef struct Board
     bitboard occupied;             //All occupied squares
     bitboard enPassant;             //The file to capture on if available
 
+    unsigned long long zobrist;     //Zobrist hash for the board
     BoardState* stateHistory;
     unsigned int castling;          //Castling availability
     unsigned int halfmove;          //The number of half moves since the last capture or pawn move

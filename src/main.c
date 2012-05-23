@@ -10,6 +10,7 @@
 #include "gameTime.h"
 #include "evaluation.h"
 #include "engine.h"
+#include "hashing/zobrist.h"
 #include "debug_log.h"
 
 typedef struct
@@ -56,6 +57,7 @@ int main(void)
 
 	INIT_LOG();
 	initCommands();
+	init_zobrist_keys();
 
 	start_engine_thread();
 
