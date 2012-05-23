@@ -272,9 +272,13 @@ int set_from_FEN(Board* board, const char* FEN)
                 board->castling |= 1u << WHITE_QUEENSIDE;
                 break;
             }
+            case '-':
+            {
+                break;
+            }
             default:
             {
-                return 1;
+                return 0;
             }
         }
         ++FEN;
@@ -295,7 +299,7 @@ int set_from_FEN(Board* board, const char* FEN)
         }
         else
         {
-            return 1;
+            return 0;
         }
         ++FEN;
 
@@ -305,7 +309,7 @@ int set_from_FEN(Board* board, const char* FEN)
         }
         else
         {
-            return 1;
+            return 0;
         }
 
         ++FEN;

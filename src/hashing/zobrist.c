@@ -67,7 +67,7 @@ unsigned long long calculate_zobrist(struct Board * board)
 
 	if (board->enPassant)
 	{
-		int index = bit_scan_forward(board->enPassant) - 1;
+		int index = bit_scan_forward(board->enPassant);
 		zobristHash ^= enPassantKeys[index];
 	}
 

@@ -7,6 +7,7 @@
 #include "move.h"
 #include "board.h"
 #include "bitscans.h"
+#include "hashing/zobrist.h"
 #include "debug_log.h"
 
 static int promotionPieces[] = {KNIGHT, BISHOP, ROOK, QUEEN};
@@ -179,6 +180,11 @@ void make_move(Board* board, Move* move)
     bitboard fromToBB = fromBB | toBB;
 
     push_state(board);
+    board->zobrist ^= castlingKeys[board->castling];
+    if (board->enPassant)
+    {
+        board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+    }
     board->enPassant = 0;
 
     if (move->flags == 0)
@@ -187,6 +193,9 @@ void make_move(Board* board, Move* move)
         board->sides[move->side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->piece][move->to];
 
         if (move->piece == WHITE_ROOK)
         {
@@ -217,6 +226,12 @@ void make_move(Board* board, Move* move)
         else if (move->piece == BLACK_KING)
         {
             board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
+        }
+
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
         }
     }
     else if ((move->flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
@@ -264,6 +279,15 @@ void make_move(Board* board, Move* move)
                 board->castling &= ~(1ull << BLACK_KINGSIDE);
             }   
         }
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->capturedPiece][move->to];
+        board->zobrist ^= pieceKeys[promoPiece][move->to];
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
     else if (move->flags & PROMOTION_FLAG)
     {
@@ -274,6 +298,14 @@ void make_move(Board* board, Move* move)
         board->sides[move->side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[promoPiece][move->to];
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
     else if ((move->flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
     {
@@ -286,6 +318,15 @@ void make_move(Board* board, Move* move)
         board->empty ^= fromToBB | captureSquare;
         move->capturedPiece = PAWN + (1 - move->side);
         board->pieces[move->capturedPiece] ^= captureSquare;
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->piece][move->to];
+        board->zobrist ^= pieceKeys[move->capturedPiece][bit_scan_forward(captureSquare)];
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
     else if (move->flags & CAPTURE_FLAG)
     {
@@ -305,6 +346,10 @@ void make_move(Board* board, Move* move)
                 move->capturedPiece = pieceIndex;
             }
         }
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->piece][move->to];
+        board->zobrist ^= pieceKeys[move->capturedPiece][move->to];
 
 		if (move->piece == WHITE_ROOK)
 		{
@@ -359,6 +404,12 @@ void make_move(Board* board, Move* move)
                 board->castling &= ~(1ull << BLACK_KINGSIDE);
             }   
         }
+
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
     else if (move->flags & SPECIAL1_FLAG)
     {
@@ -380,14 +431,26 @@ void make_move(Board* board, Move* move)
         board->occupied ^= fromToBB | rookFromTo;
         board->empty ^= fromToBB | rookFromTo;
 
-		if (move->side == WHITE)
-		{
-			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
-		}
-		else
-		{
-			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
-		}
+        if (move->side == WHITE)
+        {
+            board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
+        }
+        else
+        {
+            board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
+        }
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->piece][move->to];
+        board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
+        rookFromTo = clear_lsb(rookFromTo);
+        board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
+
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
     else if (move->flags & SPECIAL0_FLAG)
     {
@@ -396,9 +459,19 @@ void make_move(Board* board, Move* move)
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
         board->enPassant = squareFiles[move->to];
+
+        board->zobrist ^= pieceKeys[move->piece][move->from];
+        board->zobrist ^= pieceKeys[move->piece][move->to];
+        board->zobrist ^= castlingKeys[board->castling];
+        if (board->enPassant)
+        {
+            board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+        }
     }
 
     board->sideToMove = 1 - board->sideToMove;
+    board->zobrist ^= blackToMoveKey;
+    assert(board->zobrist == calculate_zobrist(board));
 }
 
 void unmake_move(Board* board, Move move)
@@ -413,6 +486,9 @@ void unmake_move(Board* board, Move move)
         board->sides[move.side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.piece][move.to];
     }
     else if ((move.flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
     {
@@ -425,6 +501,10 @@ void unmake_move(Board* board, Move move)
 
         board->occupied ^= fromBB;
         board->empty ^= fromBB;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
+        board->zobrist ^= pieceKeys[promoPiece][move.to];
     }
     else if (move.flags & PROMOTION_FLAG)
     {
@@ -435,6 +515,9 @@ void unmake_move(Board* board, Move move)
         board->sides[move.side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[promoPiece][move.to];
     }
     else if ((move.flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
     {
@@ -446,6 +529,10 @@ void unmake_move(Board* board, Move move)
         board->occupied ^= fromToBB | captureSquare;
         board->empty ^= fromToBB | captureSquare;
         board->pieces[move.capturedPiece] ^= captureSquare;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.piece][move.to];
+        board->zobrist ^= pieceKeys[move.capturedPiece][bit_scan_forward(captureSquare)];
     }
     else if (move.flags & CAPTURE_FLAG)
     {
@@ -455,6 +542,10 @@ void unmake_move(Board* board, Move move)
         board->occupied ^= fromBB;
         board->empty ^= fromBB;
         board->pieces[move.capturedPiece] ^= toBB;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.piece][move.to];
+        board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
     }
     else if (move.flags & SPECIAL1_FLAG)
     {
@@ -477,6 +568,12 @@ void unmake_move(Board* board, Move move)
         board->sides[move.side] ^= fromToBB | rookFromTo;
         board->occupied ^= fromToBB | rookFromTo;
         board->empty ^= fromToBB | rookFromTo;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.piece][move.to];
+        board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
+        rookFromTo = clear_lsb(rookFromTo);
+        board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
     }
     else if (move.flags & SPECIAL0_FLAG)
     {
@@ -484,8 +581,23 @@ void unmake_move(Board* board, Move move)
         board->sides[move.side] ^= fromToBB;
         board->occupied ^= fromToBB;
         board->empty ^= fromToBB;
+
+        board->zobrist ^= pieceKeys[move.piece][move.from];
+        board->zobrist ^= pieceKeys[move.piece][move.to];
     }
 
+    board->zobrist ^= castlingKeys[board->castling];
+    if (board->enPassant)
+    {
+        board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+    }
     pop_state(board);
     board->sideToMove = 1 - board->sideToMove;
+    board->zobrist ^= castlingKeys[board->castling];
+    if (board->enPassant)
+    {
+        board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
+    }
+    board->zobrist ^= blackToMoveKey;
+    assert(board->zobrist == calculate_zobrist(board));
 }
