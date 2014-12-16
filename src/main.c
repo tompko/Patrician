@@ -11,6 +11,7 @@
 #include "evaluation.h"
 #include "engine.h"
 #include "hashing/zobrist.h"
+#include "hashing/transposition_table.h"
 #include "debug_log.h"
 
 typedef struct
@@ -58,6 +59,7 @@ int main(void)
 	INIT_LOG();
 	initCommands();
 	init_zobrist_keys();
+	init_transposition_table(256*1024*1024);
 
 	start_engine_thread();
 

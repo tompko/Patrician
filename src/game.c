@@ -11,6 +11,8 @@
 #include "moves/king_moves.h"
 #include "moves/pawn_attacks.h"
 
+#include "hashing/transposition_table.h"
+
 int board_perft(Board* board, int level);
 
 int is_valid_pseudo_move(Board* board, Move move);
@@ -99,6 +101,12 @@ int board_perft(Board* board, int level)
 	int i, nperft = 0;
 	MoveNode* genMoves;
 
+	TTEntry* ttentry = get_tt_entry_at_depth(board->zobrist, level);
+	if (ttentry)
+	{
+		return ttentry->score;
+	}
+
 	genMoves = generate_moves(board);
 
 	if (level == 1)
@@ -118,6 +126,13 @@ int board_perft(Board* board, int level)
 
 	free_move_node(genMoves);
 	free(genMoves);
+
+	TTEntry new_entry;
+	new_entry.key = board->zobrist;
+	new_entry.score = nperft;
+	new_entry.depth = level;
+
+	put_tt_entry(&new_entry);
 
 	return nperft;
 }

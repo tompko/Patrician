@@ -3,6 +3,7 @@
 
 #include "defines.h"
 #include <assert.h>
+#include <stdlib.h>
 
 typedef struct Move
 {
