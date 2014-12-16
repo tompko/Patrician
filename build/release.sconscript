@@ -9,7 +9,7 @@ c_flags = ""
 
 lib_files.append("librt")
 lib_files.append("libpthread")
-c_flags = "-Wall -Werror -O3 -g -ggdb"
+c_flags = "-Wall -Werror -O3 -g -ggdb -DNDEBUG"
 
 env = Environment(CCFLAGS=c_flags, CPPPATH="#src")
 env.VariantDir(variant_dir='#obj/release', src_dir='#src', duplicate=False)
