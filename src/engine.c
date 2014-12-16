@@ -131,7 +131,7 @@ void start_engine_thread()
 	s_GameMoves.numMoves = 0;
 	s_GameMoves.maxMoves = 60;
 
-	int ret = pthread_create(&EngineThread, NULL, engine_thread_wrapper, NULL);
+	pthread_create(&EngineThread, NULL, engine_thread_wrapper, NULL);
 }
 
 void engine_new_game()
@@ -245,6 +245,10 @@ void engine_thread(void)
 				break;
 			}
 			case ENGINE_ANALYZING:
+			{
+				break;
+			}
+			case ENGINE_QUIT:
 			{
 				break;
 			}

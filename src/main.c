@@ -24,7 +24,7 @@ enum InputMode
 {
 	MODE_SINGLELINE,
 	MODE_XBOARD,
-	MODE_UCI,			//Not currently supported
+	//MODE_UCI,			//Not currently supported
 };
 
 void initCommands();
@@ -129,7 +129,17 @@ int singleLineInput()
 	int validCommand = 0, i = 0;
 
 	printf("patrician: ");
-	gets(input);
+	char *stream = fgets(input, 512, stdin);
+	if (!stream)
+	{
+		return 1;
+	}
+
+	unsigned long length = strlen(input) - 1;
+	if (input[length] == '\n')
+	{
+		input[length] = 0;
+	}
 
 	LOG("input", input);
 
@@ -183,7 +193,11 @@ int xboardInput()
 {
 	char input[512] = "";
 
-	gets(input);
+	char *stream = fgets(input, 512, stdin);
+	if (!stream)
+	{
+		return 1;
+	}
 
 	LOG("xboard_input", input);
 

@@ -7,12 +7,9 @@ main_files = ['main.c']
 lib_files = []
 c_flags = ""
 
-if sys.platform == 'win32':
-	c_flags = "/nologo /O2 /WX /W4 /D_CRT_SECURE_NO_WARNINGS /DNDEBUG"
-elif sys.platform == "linux2":
-	lib_files.append("librt")
-	lib_files.append("libpthread")
-	c_flags = "-Wall -g -ggdb"
+lib_files.append("librt")
+lib_files.append("libpthread")
+c_flags = "-Wall -Werror -O3 -g -ggdb"
 
 env = Environment(CCFLAGS=c_flags, CPPPATH="#src")
 env.VariantDir(variant_dir='#obj/release', src_dir='#src', duplicate=False)

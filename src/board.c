@@ -368,7 +368,7 @@ void print_board(Board* board)
 
     printf("\n\n");
 
-    for(i = 0; i < 5; ++i)
+    for(i = 0; i < 4; ++i)
     {
         if (board->castling & (1ull << i))
         {

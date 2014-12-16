@@ -1,6 +1,7 @@
 #include "gameTime.h"
 
 #include <time.h>
+#include <stdlib.h>
 
 void start_timer(Timer* timer)
 {
