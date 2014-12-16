@@ -4,12 +4,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#ifdef _MSC_VER
-#include <Windows.h>
-
-static CRITICAL_SECTION LogLock;
-#endif
-
 static FILE* LogFile = NULL;
 static const char * LogPath = "patrician_log.dat";
 
@@ -44,29 +38,20 @@ void release_log(void)
 
 void initialize_log_lock(void)
 {
-#ifdef _MSC_VER
-	InitializeCriticalSection(&LogLock);
-#endif
+
 }
 
 void lock_log_lock(void)
 {
-#ifdef _MSC_VER
-	EnterCriticalSection(&LogLock);
-#endif
 
 }
 
 void unlock_log_lock(void)
 {
-#ifdef _MSC_VER
-	LeaveCriticalSection(&LogLock);
-#endif
+
 }
 
 void release_log_lock(void)
 {
-#ifdef _MSC_VER
-	DeleteCriticalSection(&LogLock);
-#endif
+
 }

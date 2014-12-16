@@ -34,69 +34,6 @@ INLINE unsigned long long mirror_horizontal(unsigned long long mask)
 	return mask;
 }
 
-#ifdef _MSC_VER
-    #include <intrin.h>
-    #ifdef _WIN64
-        #pragma intrinsic(_BitScanForward64)
-        #pragma intrinsic(_BitScanReverse64)
-        #define USING_INTRINSICS
-    #endif
-
-INLINE unsigned long bit_scan_forward(unsigned long long mask)
-{
-#ifdef USING_INTRINSICS
-	unsigned long index;
-	_BitScanForward64(&index, mask);
-	return index;
-#else
-	return population((mask & (0-mask)) - 1);
-#endif
-}
-
-INLINE unsigned long bit_scan_reverse(unsigned long long mask)
-{
-#ifdef USING_INTRINSICS
-	unsigned long index;
-	_BitScanReverse64(&index, mask);
-	return index;
-#else
-	const int ms1bTable[256] = {0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,
-							4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-							5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-							5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-							6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-							6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-							6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-							6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-							7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,};
-	int result = 0;
-	if (mask > 0xFFFFFFFFull)
-	{
-		mask >>= 32;
-		result = 32;
-	}
-	if (mask > 0xFFFFull)
-	{
-		mask >>= 16;
-		result += 16;
-	}
-	if (mask > 0xFFull)
-	{
-		mask >>= 8;
-		result += 8;
-	}
-	return result + ms1bTable[mask];
-#endif
-}
-#else
-
 INLINE unsigned int bit_scan_forward(unsigned long long mask)
 {
     return __builtin_ffsll(mask) - 1;
@@ -106,6 +43,5 @@ INLINE unsigned int bit_scan_reverse(unsigned long long mask)
 {
     return 63 - __builtin_clzll(mask);
 }
-#endif
 
 #endif

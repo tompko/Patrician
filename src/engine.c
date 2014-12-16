@@ -1,10 +1,6 @@
 #include "engine.h"
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
 #include <pthread.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -44,16 +40,6 @@ static int s_CanPonder = 0;
 void engine_thread(void);
 void add_move_to_stack(Move move);
 
-#ifdef _MSC_VER
-HANDLE EngineThreadHandle;
-
-DWORD WINAPI engine_thread_wrapper(LPVOID lpParameter)
-{
-	UNUSED(lpParameter);
-	engine_thread();
-	return 0;
-}
-#else
 pthread_t EngineThread;
 
 void* engine_thread_wrapper(void* ptr)
@@ -61,7 +47,6 @@ void* engine_thread_wrapper(void* ptr)
 	engine_thread();
 	return 0;	
 }
-#endif
 
 void set_memory_limit(int megabytes)
 {
@@ -146,11 +131,7 @@ void start_engine_thread()
 	s_GameMoves.numMoves = 0;
 	s_GameMoves.maxMoves = 60;
 
-#ifdef _MSC_VER
-	EngineThreadHandle = CreateThread(NULL, 0, engine_thread_wrapper, NULL, 0, NULL);
-#else
 	int ret = pthread_create(&EngineThread, NULL, engine_thread_wrapper, NULL);
-#endif
 }
 
 void engine_new_game()
