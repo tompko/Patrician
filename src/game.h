@@ -4,7 +4,7 @@
 #include "board.h"
 #include "move.h"
 
-MoveNode* generate_moves(Board* board);
+unsigned int generate_moves(Board* board, Move* moves);
 void make_move(Board* board, Move* move);
 void unmake_move(Board* board, Move move);
 

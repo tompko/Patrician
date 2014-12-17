@@ -16,45 +16,43 @@
 int board_perft(Board* board, int level);
 
 int is_valid_pseudo_move(Board* board, Move move);
-void filter_pseudo_moves(Board* board, MoveNode* movenode);
+unsigned int filter_pseudo_moves(Board* board, Move* moves, unsigned int numMoves);
 
-void generate_white_moves(Board* board, MoveNode* movenode);
-void generate_black_moves(Board* board, MoveNode* movenode);
+unsigned int generate_white_moves(Board* board, Move* moves);
+unsigned int generate_black_moves(Board* board, Move* moves);
 
-void generate_white_pawns(Board* board, MoveNode* movenode);
-void generate_black_pawns(Board* board, MoveNode* movenode);
+unsigned int generate_white_pawns(Board* board, Move* moves);
+unsigned int generate_black_pawns(Board* board, Move* moves);
 
-void generate_knights(Board* board, MoveNode* movenode,
+unsigned int generate_knights(Board* board, Move* moves,
 					  int piece, int mySide, int theirSide);
-void generate_rooks(Board* board, MoveNode* movenode,
+unsigned int generate_rooks(Board* board, Move* moves,
 					int piece, int mySide, int theirSide);
-void generate_bishops(Board* board, MoveNode* movenode,
+unsigned int generate_bishops(Board* board, Move* moves,
 					int piece, int mySide, int theirSide);
-void generate_queens(Board* board, MoveNode* movenode,
+unsigned int generate_queens(Board* board, Move* moves,
 					int piece, int mySide, int theirSide);
-void generate_king(Board* board, MoveNode* movenode,
+unsigned int generate_king(Board* board, Move* moves,
 					int piece, int mySide, int theirSide);
 
 int white_attacks_square(Board* board, int square);
 int black_attacks_square(Board* board, int square);
 
-MoveNode* generate_moves(Board* board)
+unsigned int generate_moves(Board* board, Move* moves)
 {
-	MoveNode* ret = (MoveNode*)malloc(sizeof(MoveNode));
-	init_move_node(ret);
-
+	int num_moves = 0;
 	if (board->sideToMove == WHITE)
 	{
-		generate_white_moves(board, ret);
+		num_moves = generate_white_moves(board, moves);
 	}
 	else
 	{
-		generate_black_moves(board, ret);
+		num_moves = generate_black_moves(board, moves);
 	}
 
-	filter_pseudo_moves(board, ret);
+	num_moves = filter_pseudo_moves(board, moves, num_moves);
 
-	return ret;
+	return num_moves;
 }
 
 int perft(Board* board, int level)
@@ -65,41 +63,38 @@ int perft(Board* board, int level)
 void divide(Board* board, int level)
 {
 	int i, totalMoves = 0;
-	MoveNode* genMoves;
+	Move moves[256];
 
-    if (level <= 0)
-    {
-    	return;
-    }
+	if (level <= 0)
+	{
+		return;
+	}
 
-    genMoves = generate_moves(board);
+	int num_moves = generate_moves(board, moves);
 
-    for (i = 0; i < genMoves->numChildren; ++i)
-    {
-    	int numMoves = 0;
-    	char moveString[8];
-    	sprint_move(moveString, genMoves->children[i].move);
-    	printf("%s ", moveString);
+	for (i = 0; i < num_moves; ++i)
+	{
+		int numDividedMoves = 0;
+		char moveString[8];
+		sprint_move(moveString, moves[i]);
+		printf("%s ", moveString);
 
-    	make_move(board, &genMoves->children[i].move);
-    	numMoves = board_perft(board, level - 1);
-    	unmake_move(board, genMoves->children[i].move);
+		make_move(board, &moves[i]);
+		numDividedMoves = board_perft(board, level - 1);
+		unmake_move(board, moves[i]);
 
-    	totalMoves += numMoves;
-    	printf("%i\n", numMoves);
-    }
+		totalMoves += numDividedMoves;
+		printf("%i\n", numDividedMoves);
+	}
 
-    free_move_node(genMoves);
-    free(genMoves);
-
-    printf("\nMoves: %i\n", genMoves->numChildren);
-    printf("Nodes: %i\n", totalMoves);
+	printf("\nMoves: %i\n", num_moves);
+	printf("Nodes: %i\n", totalMoves);
 }
 
 int board_perft(Board* board, int level)
 {
 	int i, nperft = 0;
-	MoveNode* genMoves;
+	Move moves[256];
 
 	TTEntry* ttentry = get_tt_entry_at_depth(board->zobrist, level);
 	if (ttentry)
@@ -107,25 +102,19 @@ int board_perft(Board* board, int level)
 		return ttentry->score;
 	}
 
-	genMoves = generate_moves(board);
+	unsigned int numMoves = generate_moves(board, moves);
 
 	if (level == 1)
 	{
-		int ret = genMoves->numChildren;
-		free_move_node(genMoves);
-		free(genMoves);
-		return ret;
+		return numMoves;
 	}
 
-	for (i = 0; i < genMoves->numChildren; ++i)
+	for (i = 0; i < numMoves; ++i)
 	{
-		make_move(board, &genMoves->children[i].move);
+		make_move(board, &moves[i]);
 		nperft += board_perft(board, level - 1);
-		unmake_move(board, genMoves->children[i].move);
+		unmake_move(board, moves[i]);
 	}
-
-	free_move_node(genMoves);
-	free(genMoves);
 
 	TTEntry new_entry;
 	new_entry.key = board->zobrist;
@@ -154,44 +143,40 @@ int is_valid_pseudo_move(Board* board, Move move)
 	return valid;
 }
 
-void filter_pseudo_moves(Board* board, MoveNode* movenode)
+unsigned int filter_pseudo_moves(Board* board, Move* moves, unsigned int numMoves)
 {
-	int i = 0, j = 0, numValidMoves = movenode->numChildren;
+	int i = 0, j = 0;
 
-	while(i < numValidMoves)
+	while(i < numMoves)
 	{
-		if (is_valid_pseudo_move(board, movenode->children[i].move))
+		if (is_valid_pseudo_move(board, moves[i]))
 		{
 			++i;
 		}
 		else
 		{
-			free_move_node(&movenode->children[i]);
-			for (j = i + 1; j < numValidMoves; ++j)
+			for (j = i + 1; j < numMoves; ++j)
 			{
-				movenode->children[j-1].move = movenode->children[j].move;
-				movenode->children[j-1].children = movenode->children[j].children;
-				movenode->children[j-1].numChildren = movenode->children[j].numChildren;
-				movenode->children[j-1].maxChildren = movenode->children[j].maxChildren;
+				moves[j-1] = moves[j];
 			}
-			--numValidMoves;
+			--numMoves;
 		}
 	}
-
-	movenode->numChildren = numValidMoves;
+	return numMoves;
 }
 
-void generate_white_moves(Board* board, MoveNode* movenode)
+unsigned int generate_white_moves(Board* board, Move* moves)
 {
 	bitboard kingSideMask = (1ull << F1 | 1ull << G1);
 	bitboard queenSideMask = (1ull << B1 | 1ull << C1 | 1ull << D1);
+	int numMoves = 0;
 
-	generate_white_pawns(board, movenode);
-	generate_knights(board, movenode, WHITE_KNIGHT, WHITE, BLACK);
-	generate_rooks(board, movenode, WHITE_ROOK, WHITE, BLACK);
-	generate_bishops(board, movenode, WHITE_BISHOP, WHITE, BLACK);
-	generate_queens(board, movenode, WHITE_QUEEN, WHITE, BLACK);
-	generate_king(board, movenode, WHITE_KING, WHITE, BLACK);
+	numMoves += generate_white_pawns(board, moves + numMoves);
+	numMoves += generate_knights(board, moves + numMoves, WHITE_KNIGHT, WHITE, BLACK);
+	numMoves += generate_rooks(board, moves + numMoves, WHITE_ROOK, WHITE, BLACK);
+	numMoves += generate_bishops(board, moves + numMoves, WHITE_BISHOP, WHITE, BLACK);
+	numMoves += generate_queens(board, moves + numMoves, WHITE_QUEEN, WHITE, BLACK);
+	numMoves += generate_king(board, moves + numMoves, WHITE_KING, WHITE, BLACK);
 
 	// Castling
 	if (board->castling & (1ull << WHITE_KINGSIDE) &&
@@ -199,40 +184,41 @@ void generate_white_moves(Board* board, MoveNode* movenode)
 		!black_attacks_square(board, E1) &&
 		!black_attacks_square(board, F1) && !black_attacks_square(board, G1))
 	{
-		Move move;
-		move.from = E1;
-		move.to = G1;
-		move.flags = SPECIAL1_FLAG;
-		move.piece = WHITE_KING;
-		move.side = WHITE;
-		add_move(movenode, move);
+		moves[numMoves].from = E1;
+		moves[numMoves].to = G1;
+		moves[numMoves].flags = SPECIAL1_FLAG;
+		moves[numMoves].piece = WHITE_KING;
+		moves[numMoves].side = WHITE;
+		++numMoves;
 	}
 	if (board->castling & (1ull << WHITE_QUEENSIDE) &&
 		(board->empty & queenSideMask) == queenSideMask &&
 		!black_attacks_square(board, E1) &&
 		!black_attacks_square(board, C1) && !black_attacks_square(board, D1))
 	{
-		Move move;
-		move.from = E1;
-		move.to = C1;
-		move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
-		move.piece = WHITE_KING;
-		move.side = WHITE;
-		add_move(movenode, move);
+		moves[numMoves].from = E1;
+		moves[numMoves].to = C1;
+		moves[numMoves].flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
+		moves[numMoves].piece = WHITE_KING;
+		moves[numMoves].side = WHITE;
+		++numMoves;
 	}
+
+	return numMoves;
 }
 
-void generate_black_moves(Board* board, MoveNode* movenode)
+unsigned int generate_black_moves(Board* board, Move* moves)
 {
 	bitboard kingSideMask = (1ull << F8 | 1ull << G8);
 	bitboard queenSideMask = (1ull << B8 | 1ull << C8 | 1ull << D8);
+	int numMoves = 0;
 
-	generate_black_pawns(board, movenode);
-	generate_knights(board, movenode, BLACK_KNIGHT, BLACK, WHITE);
-	generate_rooks(board, movenode, BLACK_ROOK, BLACK, WHITE);
-	generate_bishops(board, movenode, BLACK_BISHOP, BLACK, WHITE);
-	generate_queens(board, movenode, BLACK_QUEEN, BLACK, WHITE);
-	generate_king(board, movenode, BLACK_KING, BLACK, WHITE);
+	numMoves += generate_black_pawns(board, moves + numMoves);
+	numMoves += generate_knights(board, moves + numMoves, BLACK_KNIGHT, BLACK, WHITE);
+	numMoves += generate_rooks(board, moves + numMoves, BLACK_ROOK, BLACK, WHITE);
+	numMoves += generate_bishops(board, moves + numMoves, BLACK_BISHOP, BLACK, WHITE);
+	numMoves += generate_queens(board, moves + numMoves, BLACK_QUEEN, BLACK, WHITE);
+	numMoves += generate_king(board, moves + numMoves, BLACK_KING, BLACK, WHITE);
 
 	// Castling
 	if (board->castling & (1ull << BLACK_KINGSIDE) &&
@@ -240,32 +226,30 @@ void generate_black_moves(Board* board, MoveNode* movenode)
 		!white_attacks_square(board, E8) &&
 		!white_attacks_square(board, F8) && !white_attacks_square(board, G8))
 	{
-		Move move;
-		move.from = E8;
-		move.to = G8;
-		move.flags = SPECIAL1_FLAG;
-		move.piece = BLACK_KING;
-		move.side = BLACK;
-		add_move(movenode, move);
+		moves[numMoves].from = E8;
+		moves[numMoves].to = G8;
+		moves[numMoves].flags = SPECIAL1_FLAG;
+		moves[numMoves].piece = BLACK_KING;
+		moves[numMoves].side = BLACK;
+		++numMoves;
 	}
 	if (board->castling & (1ull << BLACK_QUEENSIDE) &&
 		(board->empty & queenSideMask) == queenSideMask &&
 		!white_attacks_square(board, E8) &&
 		!white_attacks_square(board, C8) && !white_attacks_square(board, D8))
 	{
-		Move move;
-		move.from = E8;
-		move.to = C8;
-		move.flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
-		move.piece = BLACK_KING;
-		move.side = BLACK;
-		add_move(movenode, move);
+		moves[numMoves].from = E8;
+		moves[numMoves].to = C8;
+		moves[numMoves].flags = SPECIAL1_FLAG | SPECIAL0_FLAG;
+		moves[numMoves].piece = BLACK_KING;
+		moves[numMoves].side = BLACK;
+		++numMoves;
 	}
+	return numMoves;
 }
 
-void generate_white_pawns(Board* board, MoveNode* movenode)
+unsigned int generate_white_pawns(Board* board, Move* moves)
 {
-	Move move;
 	bitboard promotionRank = ranks[6];
 	bitboard epAttackRank = ranks[5];
 	bitboard startRank = ranks[1];
@@ -276,28 +260,30 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 	bitboard singlepush = (nonPromoPawns << 8) & board->empty;
 	bitboard doublepush = ((nonPromoPawns & startRank) << 8) & board->empty;
 	doublepush = (doublepush << 8) & board->empty;
-
-	move.flags = 0;
-	move.piece = WHITE_PAWN;
-	move.side = WHITE;
+	unsigned int numMoves = 0;
 
 	while(singlepush)
 	{
 		int pawnSquare = bit_scan_forward(singlepush);
-		move.to = pawnSquare;
-		move.from = pawnSquare - 8;
-		add_move(movenode, move);
+		moves[numMoves].flags = 0;
+		moves[numMoves].piece = WHITE_PAWN;
+		moves[numMoves].side = WHITE;
+		moves[numMoves].to = pawnSquare;
+		moves[numMoves].from = pawnSquare - 8;
+		++numMoves;
 		singlepush = clear_lsb(singlepush);
 	}
 
-	move.flags = SPECIAL0_FLAG;
 
 	while(doublepush)
 	{
 		int pawnSquare = bit_scan_forward(doublepush);
-		move.to = pawnSquare;
-		move.from = pawnSquare - 16;
-		add_move(movenode, move);
+		moves[numMoves].flags = SPECIAL0_FLAG;
+		moves[numMoves].piece = WHITE_PAWN;
+		moves[numMoves].side = WHITE;
+		moves[numMoves].to = pawnSquare;
+		moves[numMoves].from = pawnSquare - 16;
+		++numMoves;
 		doublepush = clear_lsb(doublepush);
 	}
 
@@ -309,18 +295,22 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 
 		while(attacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(attacks);
-			move.flags = CAPTURE_FLAG;
-			add_move(movenode, move);
+			moves[numMoves].piece = WHITE_PAWN;
+			moves[numMoves].side = WHITE;
+			moves[numMoves].from = pawnSquare;
+			moves[numMoves].to = bit_scan_forward(attacks);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			++numMoves;
 			attacks = clear_lsb(attacks);
 		}
 		while(epAttacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(epAttacks);
-			move.flags = CAPTURE_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
+			moves[numMoves].piece = WHITE_PAWN;
+			moves[numMoves].side = WHITE;
+			moves[numMoves].from = pawnSquare;
+			moves[numMoves].to = bit_scan_forward(epAttacks);
+			moves[numMoves].flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			++numMoves;
 			epAttacks = clear_lsb(epAttacks);	
 		}
 		nonPromoPawns = clear_lsb(nonPromoPawns);
@@ -328,45 +318,54 @@ void generate_white_pawns(Board* board, MoveNode* movenode)
 
 	while(singlepromo)
 	{
+		int i;
 		int pawnSquare = bit_scan_forward(singlepromo);
-		move.from = pawnSquare - 8;
-		move.to = pawnSquare;
-		move.flags = PROMOTION_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL0_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
-		add_move(movenode, move);
+		int promotionFlags[] = {PROMOTION_FLAG,
+					PROMOTION_FLAG | SPECIAL0_FLAG,
+					PROMOTION_FLAG | SPECIAL1_FLAG,
+					PROMOTION_FLAG | SPECIAL0_FLAG | SPECIAL1_FLAG};
+		for (i = 0; i < 4; ++i)
+		{
+			moves[numMoves].piece = WHITE_PAWN;
+			moves[numMoves].side = WHITE;
+			moves[numMoves].from = pawnSquare - 8;
+			moves[numMoves].to = pawnSquare;
+			moves[numMoves].flags = promotionFlags[i];
+			++numMoves;
+		}
 		singlepromo = clear_lsb(singlepromo);
 	}
 
 	while(promoPawns)
 	{
+		int i;
 		int pawnSquare = bit_scan_forward(promoPawns);
 		bitboard attacks = pawnAttacks[WHITE][pawnSquare] & board->sides[BLACK];
+		int promotionFlags[] = {PROMOTION_FLAG | CAPTURE_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG | SPECIAL1_FLAG};
 		while(attacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(attacks);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
+			for (i = 0; i < 4; ++i)
+			{
+				moves[numMoves].piece = WHITE_PAWN;
+				moves[numMoves].side = WHITE;
+				moves[numMoves].from = pawnSquare;
+				moves[numMoves].to = bit_scan_forward(attacks);
+				moves[numMoves].flags = promotionFlags[i];
+				++numMoves;
+			}
 			attacks = clear_lsb(attacks);
 		}
 		promoPawns = clear_lsb(promoPawns);
 	}
+
+	return numMoves;
 }
 
-void generate_black_pawns(Board* board, MoveNode* movenode)
+unsigned int generate_black_pawns(Board* board, Move* moves)
 {
-	Move move;
 	bitboard promotionRank = ranks[1];
 	bitboard epAttackRank = ranks[2];
 	bitboard startRank = ranks[6];
@@ -377,28 +376,29 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 	bitboard singlepush = (nonPromoPawns >> 8) & board->empty;
 	bitboard doublepush = ((nonPromoPawns & startRank) >> 8) & board->empty;
 	doublepush = (doublepush >> 8) & board->empty;
-
-	move.flags = 0;
-	move.piece = BLACK_PAWN;
-	move.side = BLACK;
+	unsigned int numMoves = 0;
 
 	while(singlepush)
 	{
 		int pawnSquare = bit_scan_forward(singlepush);
-		move.to = pawnSquare;
-		move.from = pawnSquare + 8;
-		add_move(movenode, move);
+		moves[numMoves].flags = 0;
+		moves[numMoves].piece = BLACK_PAWN;
+		moves[numMoves].side = BLACK;
+		moves[numMoves].to = pawnSquare;
+		moves[numMoves].from = pawnSquare + 8;
+		++numMoves;
 		singlepush = clear_lsb(singlepush);
 	}
-
-	move.flags = SPECIAL0_FLAG;
 
 	while(doublepush)
 	{
 		int pawnSquare = bit_scan_forward(doublepush);
-		move.to = pawnSquare;
-		move.from = pawnSquare + 16;
-		add_move(movenode, move);
+		moves[numMoves].flags = SPECIAL0_FLAG;
+		moves[numMoves].piece = BLACK_PAWN;
+		moves[numMoves].side = BLACK;
+		moves[numMoves].to = pawnSquare;
+		moves[numMoves].from = pawnSquare + 16;
+		++numMoves;
 		doublepush = clear_lsb(doublepush);
 	}
 
@@ -409,18 +409,22 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 		bitboard epAttacks = pawnAttacks[BLACK][pawnSquare] & board->enPassant & epAttackRank;
 		while(attacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(attacks);
-			move.flags = CAPTURE_FLAG;
-			add_move(movenode, move);
+			moves[numMoves].piece = BLACK_PAWN;
+			moves[numMoves].side = BLACK;
+			moves[numMoves].from = pawnSquare;
+			moves[numMoves].to = bit_scan_forward(attacks);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			++numMoves;
 			attacks = clear_lsb(attacks);
 		}
 		while(epAttacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(epAttacks);
-			move.flags = CAPTURE_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
+			moves[numMoves].piece = BLACK_PAWN;
+			moves[numMoves].side = BLACK;
+			moves[numMoves].from = pawnSquare;
+			moves[numMoves].to = bit_scan_forward(epAttacks);
+			moves[numMoves].flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			++numMoves;
 			epAttacks = clear_lsb(epAttacks);
 		}
 		nonPromoPawns = clear_lsb(nonPromoPawns);
@@ -428,46 +432,59 @@ void generate_black_pawns(Board* board, MoveNode* movenode)
 
 	while(singlepromo)
 	{
+		int i;
 		int pawnSquare = bit_scan_forward(singlepromo);
-		move.from = pawnSquare + 8;
-		move.to = pawnSquare;
-		move.flags = PROMOTION_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL0_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG;
-		add_move(movenode, move);
-		move.flags = PROMOTION_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
-		add_move(movenode, move);
+		int promotionFlags[] = {PROMOTION_FLAG,
+					PROMOTION_FLAG | SPECIAL0_FLAG,
+					PROMOTION_FLAG | SPECIAL1_FLAG,
+					PROMOTION_FLAG | SPECIAL0_FLAG | SPECIAL1_FLAG};
+		for (i = 0; i < 4; ++i)
+		{
+			moves[numMoves].flags = 0;
+			moves[numMoves].piece = BLACK_PAWN;
+			moves[numMoves].side = BLACK;
+			moves[numMoves].from = pawnSquare + 8;
+			moves[numMoves].to = pawnSquare;
+			moves[numMoves].flags = promotionFlags[i];
+			++numMoves;
+		}
 		singlepromo = clear_lsb(singlepromo);
 	}
 
 	while(promoPawns)
 	{
+		int i;
 		int pawnSquare = bit_scan_forward(promoPawns);
 		bitboard attacks = pawnAttacks[BLACK][pawnSquare] & board->sides[WHITE];
+		int promotionFlags[] = {PROMOTION_FLAG | CAPTURE_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG,
+					PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG | SPECIAL1_FLAG};
 		while(attacks)
 		{
-			move.from = pawnSquare;
-			move.to = bit_scan_forward(attacks);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG;
-			add_move(movenode, move);
-			move.flags = PROMOTION_FLAG | CAPTURE_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
-			add_move(movenode, move);
+			for (i = 0; i < 4; ++i)
+			{
+				moves[numMoves].flags = 0;
+				moves[numMoves].piece = BLACK_PAWN;
+				moves[numMoves].side = BLACK;
+				moves[numMoves].from = pawnSquare;
+				moves[numMoves].to = bit_scan_forward(attacks);
+				moves[numMoves].flags = promotionFlags[i];
+				++numMoves;
+			}
 			attacks = clear_lsb(attacks);
 		}
 		promoPawns = clear_lsb(promoPawns);
 	}
+
+	return numMoves;
 }
 
-void generate_knights(Board* board, MoveNode* movenode,
+unsigned int generate_knights(Board* board, Move* moves,
 					  int piece, int mySide, int theirSide)
 {
 	bitboard allKnights = board->pieces[piece];
+	unsigned int numMoves = 0;
 
 	while(allKnights)
 	{
@@ -477,38 +494,37 @@ void generate_knights(Board* board, MoveNode* movenode,
 		allMoves &= ~captures;
 		while(allMoves)
 		{
-			Move move;
-
-			move.from = knightSquare;
-			move.to = bit_scan_forward(allMoves);
-			move.flags = 0;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = knightSquare;
+			moves[numMoves].to = bit_scan_forward(allMoves);
+			moves[numMoves].flags = 0;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			allMoves = clear_lsb(allMoves);
 		}
 		while(captures)
 		{
-			Move move;
-
-			move.from = knightSquare;
-			move.to = bit_scan_forward(captures);
-			move.flags = CAPTURE_FLAG;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = knightSquare;
+			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			captures = clear_lsb(captures);
 		}
 		allKnights = clear_lsb(allKnights);
-	}	
+	}
+
+	return numMoves;
 }
 
-void generate_rooks(Board* board, MoveNode* movenode,
+unsigned int generate_rooks(Board* board, Move* moves,
 					int piece, int mySide, int theirSide)
 {
 	bitboard allRooks = board->pieces[piece];
+	unsigned int numMoves = 0;
 
 	while(allRooks)
 	{
@@ -519,38 +535,37 @@ void generate_rooks(Board* board, MoveNode* movenode,
 
 		while(allMoves)
 		{
-			Move move;
-
-			move.from = rookSquare;
-			move.to = bit_scan_forward(allMoves);
-			move.flags = 0;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = rookSquare;
+			moves[numMoves].to = bit_scan_forward(allMoves);
+			moves[numMoves].flags = 0;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			allMoves = clear_lsb(allMoves);
 		}
 		while(captures)
 		{
-			Move move;
-
-			move.from = rookSquare;
-			move.to = bit_scan_forward(captures);
-			move.flags = CAPTURE_FLAG;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = rookSquare;
+			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			captures = clear_lsb(captures);
 		}
 		allRooks = clear_lsb(allRooks);
 	}
+
+	return numMoves;
 }
 
-void generate_bishops(Board* board, MoveNode* movenode,
+unsigned int generate_bishops(Board* board, Move* moves,
 					int piece, int mySide, int theirSide)
 {
 	bitboard allBishops = board->pieces[piece];
+	unsigned int numMoves = 0;
 
 	while(allBishops)
 	{
@@ -561,38 +576,37 @@ void generate_bishops(Board* board, MoveNode* movenode,
 
 		while(allMoves)
 		{
-			Move move;
-
-			move.from = bishopSquare;
-			move.to = bit_scan_forward(allMoves);
-			move.flags = 0;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = bishopSquare;
+			moves[numMoves].to = bit_scan_forward(allMoves);
+			moves[numMoves].flags = 0;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			allMoves = clear_lsb(allMoves);
 		}
 		while(captures)
 		{
-			Move move;
-
-			move.from = bishopSquare;
-			move.to = bit_scan_forward(captures);
-			move.flags = CAPTURE_FLAG;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = bishopSquare;
+			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			captures = clear_lsb(captures);
 		}
 		allBishops = clear_lsb(allBishops);
 	}
+
+	return numMoves;
 }
 
-void generate_queens(Board* board, MoveNode* movenode,
+unsigned int generate_queens(Board* board, Move* moves,
 					int piece, int mySide, int theirSide)
 {
 	bitboard allQueens = board->pieces[piece];
+	unsigned int numMoves = 0;
 
 	while(allQueens)
 	{
@@ -603,61 +617,66 @@ void generate_queens(Board* board, MoveNode* movenode,
 
 		while(allMoves)
 		{
-			Move move;
-
-			move.from = queenSquare;
-			move.to = bit_scan_forward(allMoves);
-			move.flags = 0;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = queenSquare;
+			moves[numMoves].to = bit_scan_forward(allMoves);
+			moves[numMoves].flags = 0;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			allMoves = clear_lsb(allMoves);
 		}
 		while(captures)
 		{
-			Move move;
-
-			move.from = queenSquare;
-			move.to = bit_scan_forward(captures);
-			move.flags = CAPTURE_FLAG;
-			move.piece = piece;
-			move.side = mySide;
-			add_move(movenode, move);
+			moves[numMoves].from = queenSquare;
+			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].piece = piece;
+			moves[numMoves].side = mySide;
+			++numMoves;
 
 			captures = clear_lsb(captures);
 		}
 		allQueens = clear_lsb(allQueens);
 	}
+
+	return numMoves;
 }
 
-void generate_king(Board* board, MoveNode* movenode,
+unsigned int generate_king(Board* board, Move* moves,
 					int piece, int mySide, int theirSide)
 {
-	Move move;
 	int kingSquare = bit_scan_forward(board->pieces[piece]);
 	bitboard allMoves = kingMoves[kingSquare] & ~board->sides[mySide];
 	bitboard captures = allMoves & board->sides[theirSide];
 	allMoves &= ~captures;
+	unsigned int numMoves = 0;
 
-	move.from = kingSquare;
-	move.flags = 0;
-	move.piece = piece;
-	move.side = mySide;
 
 	while(allMoves)
 	{
-		move.to = bit_scan_forward(allMoves);
-		add_move(movenode, move);
+		moves[numMoves].from = kingSquare;
+		moves[numMoves].flags = 0;
+		moves[numMoves].piece = piece;
+		moves[numMoves].side = mySide;
+		moves[numMoves].to = bit_scan_forward(allMoves);
+		++numMoves;
+
 		allMoves = clear_lsb(allMoves);
 	}
-	move.flags = CAPTURE_FLAG;
 	while(captures)
 	{
-		move.to = bit_scan_forward(captures);
-		add_move(movenode, move);
+		moves[numMoves].from = kingSquare;
+		moves[numMoves].flags = CAPTURE_FLAG;
+		moves[numMoves].piece = piece;
+		moves[numMoves].side = mySide;
+		moves[numMoves].to = bit_scan_forward(captures);
+		++numMoves;
+
 		captures = clear_lsb(captures);
 	}
+
+	return numMoves;
 }
 
 int white_attacks_square(Board* board, int square)

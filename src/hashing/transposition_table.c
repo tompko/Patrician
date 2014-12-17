@@ -11,10 +11,19 @@ unsigned long long table_size = 0;
 
 void init_transposition_table(unsigned long long size_in_bytes)
 {
+	int i = 0;
 	free_transposition_table();
 
 	table_size = size_in_bytes / sizeof(TTNode);
 	transposition_table = (TTNode*)malloc(table_size * sizeof(TTNode));
+
+	for (i = 0; i < table_size; ++i)
+	{
+		transposition_table[i].depth_preferred.key = 0;
+		transposition_table[i].depth_preferred.depth = 0;
+		transposition_table[i].always_replace.key = 0;
+		transposition_table[i].always_replace.depth = 0;
+	}
 }
 
 void free_transposition_table(void)
