@@ -9,22 +9,22 @@
    or init_by_array64(init_key, key_length).
 
    Copyright (C) 2004, Makoto Matsumoto and Takuji Nishimura,
-   All rights reserved.                          
+   All rights reserved.						  
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
 
-     1. Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
+	 1. Redistributions of source code must retain the above copyright
+		notice, this list of conditions and the following disclaimer.
 
-     2. Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
+	 2. Redistributions in binary form must reproduce the above copyright
+		notice, this list of conditions and the following disclaimer in the
+		documentation and/or other materials provided with the distribution.
 
-     3. The names of its contributors may not be used to endorse or promote 
-        products derived from this software without specific prior written 
-        permission.
+	 3. The names of its contributors may not be used to endorse or promote 
+		products derived from this software without specific prior written 
+		permission.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -40,13 +40,13 @@
 
    References:
    T. Nishimura, ``Tables of 64-bit Mersenne Twisters''
-     ACM Transactions on Modeling and 
-     Computer Simulation 10. (2000) 348--357.
+	 ACM Transactions on Modeling and 
+	 Computer Simulation 10. (2000) 348--357.
    M. Matsumoto and T. Nishimura,
-     ``Mersenne Twister: a 623-dimensionally equidistributed
-       uniform pseudorandom number generator''
-     ACM Transactions on Modeling and 
-     Computer Simulation 8. (Jan. 1998) 3--30.
+	 ``Mersenne Twister: a 623-dimensionally equidistributed
+	   uniform pseudorandom number generator''
+	 ACM Transactions on Modeling and 
+	 Computer Simulation 8. (Jan. 1998) 3--30.
 
    Any feedback is very welcome.
    http://www.math.hiroshima-u.ac.jp/~m-mat/MT/emt.html
@@ -61,7 +61,7 @@ void init_genrand64(unsigned long long seed);
 /* init_key is the array for initializing keys */
 /* key_length is its length */
 void init_by_array64(unsigned long long init_key[], 
-		     unsigned long long key_length);
+			 unsigned long long key_length);
 
 /* generates a random number on [0, 2^64-1]-interval */
 unsigned long long genrand64_int64(void);

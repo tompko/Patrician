@@ -57,7 +57,7 @@ unsigned int generate_moves(Board* board, Move* moves)
 
 int perft(Board* board, int level)
 {
-    return board_perft(board, level);
+	return board_perft(board, level);
 }
 
 void divide(Board* board, int level)
