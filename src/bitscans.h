@@ -1,9 +1,8 @@
 #ifndef BITSCANS_H
 #define BITSCANS_H
 
-#include "defines.h"
 
-INLINE int population(unsigned long long mask)
+static inline int population(unsigned long long mask)
 {
 	int count = 0;
 	for (; mask; ++count)
@@ -13,17 +12,17 @@ INLINE int population(unsigned long long mask)
 	return count;
 }
 
-INLINE unsigned long long lsb(unsigned long long mask)
+static inline unsigned long long lsb(unsigned long long mask)
 {
 	return mask & (0 - mask);
 }
 
-INLINE unsigned long long clear_lsb(unsigned long long mask)
+static inline unsigned long long clear_lsb(unsigned long long mask)
 {
 	return mask & (mask - 1);
 }
 
-INLINE unsigned long long mirror_horizontal(unsigned long long mask)
+static inline unsigned long long mirror_horizontal(unsigned long long mask)
 {
 	const unsigned long long k1 = 0x5555555555555555ull;
 	const unsigned long long k2 = 0x3333333333333333ull;
@@ -34,12 +33,12 @@ INLINE unsigned long long mirror_horizontal(unsigned long long mask)
 	return mask;
 }
 
-INLINE unsigned int bit_scan_forward(unsigned long long mask)
+static inline unsigned int bit_scan_forward(unsigned long long mask)
 {
     return __builtin_ffsll(mask) - 1;
 }
 
-INLINE unsigned int bit_scan_reverse(unsigned long long mask)
+static inline unsigned int bit_scan_reverse(unsigned long long mask)
 {
     return 63 - __builtin_clzll(mask);
 }

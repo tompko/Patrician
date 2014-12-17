@@ -3,7 +3,6 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "defines.h"
 #include "perftTest.h"
 #include "game.h"
 #include "bitscans.h"
@@ -323,7 +322,7 @@ int xboardInput()
 void help(const char* input)
 {
 	int i;
-	UNUSED(input);
+
 
 	for(i = 0; i < NUM_COMMANDS; ++i)
 	{
@@ -336,7 +335,7 @@ void test_perft(const char* input)
 	int i, j;
 	Board board;
 	Timer totalTimer, perftTimer;
-	UNUSED(input);
+
 
 	initPerftTests();
 	printf("\n\n\n");
@@ -382,7 +381,7 @@ void test_eval(const char* input)
 	int i, j;
 	Board board;
 
-	UNUSED(input);
+
 
 	initPerftTests();
 	printf("\n\n\n");
@@ -449,12 +448,12 @@ void run_divide(const char* input)
 
 void display(const char* input)
 {
-	UNUSED(input);
+
 	print_board(&s_Board);
 }
 
 void new_game(const char* input)
 {
-	UNUSED(input);
+
 	set_from_FEN(&s_Board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }

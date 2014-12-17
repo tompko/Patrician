@@ -1,7 +1,6 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-#include "defines.h"
 #include <assert.h>
 #include <stdlib.h>
 
