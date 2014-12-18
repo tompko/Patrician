@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/tompko/Patrician.png?label=ready&title=Ready)](https://waffle.io/tompko/Patrician)
 # Building Patrician #
 
 Patrician uses scons as its build system. Scons is an alternative to make and can be downloaded from their [download page](http://scons.org/download.php).
