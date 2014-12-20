@@ -2,15 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#include <unistd.h>
 
-#include "perftTest.h"
 #include "game.h"
 #include "bitscans.h"
 #include "gameTime.h"
-#include "evaluation.h"
 #include "engine.h"
+#include "perft.h"
 #include "hashing/zobrist.h"
 #include "hashing/transposition_table.h"
+#include "io/epd.h"
 #include "debug_log.h"
 
 typedef struct
@@ -32,8 +33,6 @@ int singleLineInput();
 int xboardInput();
 
 void help(const char * input);
-void test_perft(const char* input);
-void test_eval(const char* input);
 void set_fen(const char * input);
 void run_perft(const char * input);
 void run_divide(const char* input);
@@ -42,15 +41,17 @@ void new_game(const char* input);
 
 static Board s_Board;
 
-#define NUM_COMMANDS (9)
+#define NUM_COMMANDS (7)
 Command userCommands[NUM_COMMANDS];
 enum InputMode inputMode = MODE_SINGLELINE;
 
 FILE* file;
 
-int main(void)
+int main(int argc, char** argv)
 {
 	int done = 0;
+	int arg;
+
 	/*Turn off buffering on the output stream as recommended
 	  for the xboard protocol*/
 	setbuf(stdout, NULL);
@@ -60,18 +61,43 @@ int main(void)
 	init_zobrist_keys();
 	init_transposition_table(256*1024*1024);
 
-	start_engine_thread();
-
 	printf("Patrician version 0.01\n");
 	printf("Copyright (C) 2012 Chris Tompkinson\n");
 	printf("\n");
+
+	while ((arg = getopt(argc, argv, "p:")) != -1)
+	{
+		switch (arg)
+		{
+			case 'p':
+				printf("Performing perft with file: %s\n", optarg);
+				EPDFile* epd = epd_read_file(optarg);
+				if (!epd)
+				{
+					exit(EXIT_FAILURE);
+				}
+
+				int perft_pass = perft_test_perft(epd);
+				epd_file_free(epd);
+
+				if (!perft_pass)
+				{
+					exit(EXIT_FAILURE);
+				}
+				exit(EXIT_SUCCESS);
+			default:
+				printf("Unrecognised option %c\n", arg);
+				break;
+		}
+	}	
+
+	start_engine_thread();
 
 	while(!done)
 	{
 		switch(inputMode)
 		{
 			case MODE_SINGLELINE:
-
 				done = singleLineInput();
 				break;
 			case MODE_XBOARD:
@@ -91,37 +117,29 @@ void initCommands()
 	userCommands[0].helpString = "Print all available commands";
 	userCommands[0].function = help;
 
-	userCommands[1].command = "perftTest";
-	userCommands[1].helpString = "Run the perft test suite on the move generator";
-	userCommands[1].function = test_perft;
+	userCommands[1].command = "fen";
+	userCommands[1].helpString = "Set the current position from the given FEN";
+	userCommands[1].function = set_fen;
 
-	userCommands[2].command = "evalTest";
-	userCommands[2].helpString = "Test the consistency of the evaluation function";
-	userCommands[2].function = test_eval;
+	userCommands[2].command = "perft";
+	userCommands[2].helpString = "Count the number of nodes at a given depth";
+	userCommands[2].function = run_perft;
 
-	userCommands[3].command = "fen";
-	userCommands[3].helpString = "Set the current position from the given FEN";
-	userCommands[3].function = set_fen;
+	userCommands[3].command = "divide";
+	userCommands[3].helpString = "Show the number of nodes per child move";
+	userCommands[3].function = run_divide;
 
-	userCommands[4].command = "perft";
-	userCommands[4].helpString = "Count the number of nodes at a given depth";
-	userCommands[4].function = run_perft;
+	userCommands[4].command = "display";
+	userCommands[4].helpString = "Display the current board";
+	userCommands[4].function = display;
 
-	userCommands[5].command = "divide";
-	userCommands[5].helpString = "Show the number of nodes per child move";
-	userCommands[5].function = run_divide;
+	userCommands[5].command = "new";
+	userCommands[5].helpString = "Start a new game";
+	userCommands[5].function = new_game;
 
-	userCommands[6].command = "display";
-	userCommands[6].helpString = "Display the current board";
-	userCommands[6].function = display;
-
-	userCommands[7].command = "new";
-	userCommands[7].helpString = "Start a new game";
-	userCommands[7].function = new_game;
-
-	userCommands[8].command = "quit";
-	userCommands[8].helpString = "Quit Patrician";
-	userCommands[8].function = 0;
+	userCommands[6].command = "quit";
+	userCommands[6].helpString = "Quit Patrician";
+	userCommands[6].function = 0;
 }
 
 int singleLineInput()
@@ -330,101 +348,6 @@ void help(const char* input)
 	}
 }
 
-void test_perft(const char* input)
-{
-	int i, j;
-	Board board;
-	Timer totalTimer, perftTimer;
-
-
-	initPerftTests();
-	printf("\n\n\n");
-
-	start_timer(&totalTimer);
-
-	for (i = 0; i < NUM_PERFT_TESTS; ++i)
-	{
-		printf("%i/%i FEN: %s\n", i+1, NUM_PERFT_TESTS, perftTests[i].FEN);
-		set_from_FEN(&board, perftTests[i].FEN);
-		for (j = 0; j < 6; ++j)
-		{
-			if (perftTests[i].perfts[j] >= 0)
-			{
-				int result;
-
-				start_timer(&perftTimer);
-				result = perft(&board, j+1);
-				stop_timer(&perftTimer);
-
-				printf("perft %i: %i [%03fs] (%i) %s\n", j+1, result, get_elapsed_time(&perftTimer), perftTests[i].perfts[j],
-					result == perftTests[i].perfts[j] ? "PASS" : "FAIL");
-				if (result != perftTests[i].perfts[j])
-				{
-					printf("Fail in perft test\n");
-					printf("FEN: %s\n", perftTests[i].FEN);
-					printf("Level: %i\n", j+1);
-					printf("Expected: %i\n", perftTests[i].perfts[j]);
-					printf("Found: %i\n", result);
-					return;
-				}
-			}
-		}
-		printf("\n");
-	}
-
-	stop_timer(&totalTimer);
-	printf("Perft suite finished in %03fs\n", get_elapsed_time(&totalTimer));
-}
-
-void test_eval(const char* input)
-{
-	int i, j;
-	Board board;
-
-
-
-	initPerftTests();
-	printf("\n\n\n");
-
-	for(i = 0; i < NUM_PERFT_TESTS; ++i)
-	{
-		int score, mirrorScore, otherScore, otherMirrorScore;
-
-		set_from_FEN(&board, perftTests[i].FEN);
-
-		score = evaluate(&board);
-
-		board.sideToMove = 1 - board.sideToMove;
-
-		otherScore = -evaluate(&board);
-
-		for(j = 0; j < NUM_PIECES; ++j)
-		{
-			board.pieces[j] = mirror_horizontal(board.pieces[j]);
-		}
-
-		otherMirrorScore = -evaluate(&board);
-
-		board.sideToMove = 1 - board.sideToMove;
-
-		mirrorScore = evaluate(&board);
-
-		printf("%s: ", perftTests[i].FEN);
-
-		if(score != mirrorScore || mirrorScore != otherScore || otherScore != otherMirrorScore)
-		{
-			printf("FAIL\n");
-			printf("Score: %i\nMirror Score: %i\n", score, mirrorScore);
-			printf("Other Score: %i\nOther Mirror Score: %i\n", otherScore, otherMirrorScore);
-			return;
-		}
-		else
-		{
-			printf("PASS\n");
-		}
-	}
-}
-
 void set_fen(const char * input)
 {
 	set_from_FEN(&s_Board, input);
@@ -434,7 +357,7 @@ void run_perft(const char * input)
 {
 	int level = atoi(input);
 
-	int result = perft(&s_Board, level);
+	int result = perft_perft(&s_Board, level);
 
 	printf("perft %i: %i\n", level, result);
 }
@@ -443,7 +366,7 @@ void run_divide(const char* input)
 {
 	int level = atoi(input);
 
-	divide(&s_Board, level);
+	perft_divide(stdout, &s_Board, level);
 }
 
 void display(const char* input)
@@ -457,3 +380,4 @@ void new_game(const char* input)
 
 	set_from_FEN(&s_Board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
+
