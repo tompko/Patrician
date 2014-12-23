@@ -67,8 +67,8 @@ def move_to_fen(move):
 
 def generate_log(path):
 	"""Generate an html log from the debug .dat log file written out by Patrician"""
-	with open("logs\\log.html", "w") as log_file:
-		with open("logs\\header.html") as header:
+	with open("logs/log.html", "w") as log_file:
+		with open("logs/header.html") as header:
 			log_file.write(header.read())
 
 		with open(path) as dat_file:
@@ -160,11 +160,11 @@ def generate_log(path):
 					raise ValueError("Unrecognised log entry: {0}".format(log_entry["log_type"]))
 
 
-		with open("logs\\footer.html") as footer:
+		with open("logs/footer.html") as footer:
 			log_file.write(footer.read())
 
 if __name__ == "__main__":
 	print "Generating log from:", sys.argv[1]
 	generate_log(sys.argv[1])
 
-	webbrowser.open("logs\\log.html")
+	webbrowser.open("logs/log.html")

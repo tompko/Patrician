@@ -13,8 +13,6 @@
 
 #include "hashing/transposition_table.h"
 
-int board_perft(Board* board, int level);
-
 int is_valid_pseudo_move(Board* board, Move move);
 unsigned int filter_pseudo_moves(Board* board, Move* moves, unsigned int numMoves);
 
@@ -53,77 +51,6 @@ unsigned int generate_moves(Board* board, Move* moves)
 	num_moves = filter_pseudo_moves(board, moves, num_moves);
 
 	return num_moves;
-}
-
-int perft(Board* board, int level)
-{
-	return board_perft(board, level);
-}
-
-void divide(Board* board, int level)
-{
-	int i, totalMoves = 0;
-	Move moves[256];
-
-	if (level <= 0)
-	{
-		return;
-	}
-
-	int num_moves = generate_moves(board, moves);
-
-	for (i = 0; i < num_moves; ++i)
-	{
-		int numDividedMoves = 0;
-		char moveString[8];
-		sprint_move(moveString, moves[i]);
-		printf("%s ", moveString);
-
-		make_move(board, &moves[i]);
-		numDividedMoves = board_perft(board, level - 1);
-		unmake_move(board, moves[i]);
-
-		totalMoves += numDividedMoves;
-		printf("%i\n", numDividedMoves);
-	}
-
-	printf("\nMoves: %i\n", num_moves);
-	printf("Nodes: %i\n", totalMoves);
-}
-
-int board_perft(Board* board, int level)
-{
-	int i, nperft = 0;
-	Move moves[256];
-
-	TTEntry* ttentry = get_tt_entry_at_depth(board->zobrist, level);
-	if (ttentry)
-	{
-		return ttentry->score;
-	}
-
-	unsigned int numMoves = generate_moves(board, moves);
-
-	if (level == 1)
-	{
-		return numMoves;
-	}
-
-	for (i = 0; i < numMoves; ++i)
-	{
-		make_move(board, &moves[i]);
-		nperft += board_perft(board, level - 1);
-		unmake_move(board, moves[i]);
-	}
-
-	TTEntry new_entry;
-	new_entry.key = board->zobrist;
-	new_entry.score = nperft;
-	new_entry.depth = level;
-
-	put_tt_entry(&new_entry);
-
-	return nperft;
 }
 
 int is_valid_pseudo_move(Board* board, Move move)
