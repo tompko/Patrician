@@ -24,7 +24,7 @@ int perft_test_perft(EPDFile* epdFile)
 		char depthKey[8];
 		unsigned int perftExpected = 0, perftActual;
 
-		printf("%i/%i\n", i + 1, epdFile->numEPD);
+		printf("%i/%i %s\n", i + 1, epdFile->numEPD, epd->description);
 
 		while (1)
 		{

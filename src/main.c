@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 {
 	int done = 0;
 	int arg;
+	int exitStatus = EXIT_SUCCESS;
 
 	/*Turn off buffering on the output stream as recommended
 	  for the xboard protocol*/
@@ -71,20 +72,24 @@ int main(int argc, char** argv)
 		{
 			case 'p':
 				printf("Performing perft with file: %s\n", optarg);
-				EPDFile* epd = epd_read_file(optarg);
-				if (!epd)
+				EPDFile* epdFile = epd_read_file(optarg);
+				if (!epdFile)
 				{
-					exit(EXIT_FAILURE);
+					exitStatus = EXIT_FAILURE;
+					goto exit;
 				}
 
-				int perft_pass = perft_test_perft(epd);
-				epd_file_free(epd);
+				int perft_pass = perft_test_perft(epdFile);
+				epd_file_free(epdFile);
+				free(epdFile);
 
 				if (!perft_pass)
 				{
-					exit(EXIT_FAILURE);
+					exitStatus = EXIT_FAILURE;
+					goto exit;
 				}
-				exit(EXIT_SUCCESS);
+				exitStatus = EXIT_SUCCESS;
+				goto exit;
 			default:
 				printf("Unrecognised option %c\n", arg);
 				break;
@@ -106,9 +111,11 @@ int main(int argc, char** argv)
 		}
 	}
 
+exit:
+	free_transposition_table();
 	RELEASE_LOG();
 
-	return 0;
+	exit(exitStatus);
 }
 
 void initCommands()

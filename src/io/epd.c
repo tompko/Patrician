@@ -22,7 +22,6 @@ typedef enum
 	EPD_END,
 } EPDState;
 
-char* epd_read_epd(char* string, EPD* epd);
 void epd_free(EPD* epd);
 
 EPDFile* epd_read_file(char* filename)
@@ -34,13 +33,19 @@ EPDFile* epd_read_file(char* filename)
 	EPD* epd = NULL;
 	EPDOperation* operation = NULL;
 	EPDState state = EPD_START;
-	int brank = 0, bfile = 0, i = 0, operandLength = 0, done = 0;
+	int i = 0;
+	int brank = 0, bfile = 0;
+	int operandLength = 0, descriptionLength = 0;
+	int done = 0;
 
 	file = fopen(filename, "r");
 
 	if (!file)
 	{
-		fprintf(stderr, "Unable to open file %s: %s\n", filename, strerror(errno));
+		fprintf(stderr,
+		        "Unable to open file %s: %s\n",
+		        filename,
+		        strerror(errno));
 		return NULL;
 	}
 	
@@ -56,8 +61,8 @@ EPDFile* epd_read_file(char* filename)
 		goto error;
 	}
 	contents[fileSize] = 0;
-
 	string = contents;
+
 	epdFile = (EPDFile*)malloc(sizeof(EPDFile));
 	epdFile->epds = NULL;
 	epdFile->numEPD = 0;
@@ -88,6 +93,10 @@ EPDFile* epd_read_file(char* filename)
 					epd->operations = NULL;
 					epd->numOperations = 0;
 
+					epd->description = malloc(sizeof(char));
+					epd->description[0] = 0;
+					descriptionLength = 0;
+
 					brank = 7;
 					bfile = 0;
 					memset(&epd->board, 0, sizeof(Board));
@@ -102,12 +111,8 @@ EPDFile* epd_read_file(char* filename)
 				if (*string == '\n')
 				{
 					state = EPD_START;
-					++string;
 				}
-				else
-				{
-					++string;
-				}
+				++string;
 				break;
 			case EPD_PIECES:
 				switch(*string)
@@ -214,9 +219,14 @@ EPDFile* epd_read_file(char* filename)
 						state = EPD_SIDE_TO_MOVE;
 						break;
 					default:
-						fprintf(stderr, "Unable to parse piece placement, unrecognised character: %c\n", *string);
+						fprintf(stderr,
+						        "Unable to parse piece placement, unrecognised character: %c\n",
+								*string);
 						goto error;
 				}
+				epd->description[descriptionLength++] = *string;
+				epd->description = realloc(epd->description, descriptionLength + 1);
+				epd->description[descriptionLength] = 0;
 				++string;
 				break;
 			case EPD_SIDE_TO_MOVE:
@@ -230,12 +240,20 @@ EPDFile* epd_read_file(char* filename)
 				}
 				else
 				{
-					fprintf(stderr, "Unable to parse side to move, unrecognised character: %c\n", *string);
+					fprintf(stderr,
+					        "Unable to parse side to move, unrecognised character: %c\n",
+					        *string);
 					goto error;
 				}
+				epd->description[descriptionLength++] = *string;
+				epd->description = realloc(epd->description, descriptionLength + 1);
+				epd->description[descriptionLength] = 0;
 				++string;
 				while(*string == ' ')
 				{
+					epd->description[descriptionLength++] = *string;
+					epd->description = realloc(epd->description, descriptionLength + 1);
+					epd->description[descriptionLength] = 0;
 					++string;
 				}
 				state = EPD_CASTLING;
@@ -261,9 +279,14 @@ EPDFile* epd_read_file(char* filename)
 						state = EPD_EN_PASSANT;
 						break;
 					default:
-						fprintf(stderr, "Unable to parse castling, unrecognised character: %c\n", *string);
+						fprintf(stderr,
+						        "Unable to parse castling, unrecognised character: %c\n",
+						        *string);
 						goto error;
 				}
+				epd->description[descriptionLength++] = *string;
+				epd->description = realloc(epd->description, descriptionLength + 1);
+				epd->description[descriptionLength] = 0;
 				++string;
 				break;
 			case EPD_EN_PASSANT:
@@ -274,13 +297,12 @@ EPDFile* epd_read_file(char* filename)
 				else if (*string == ' ')
 				{
 					epd->board.zobrist = calculate_zobrist(&epd->board);
-					log_board(&epd->board);
 					state = EPD_OPERATIONS;
 				}
 				else if (*string == '\n' || *string == 0)
 				{
-					--string;
 					state = EPD_END;
+					--string;
 				}
 				else
 				{
@@ -290,9 +312,14 @@ EPDFile* epd_read_file(char* filename)
 					}
 					else
 					{
-						fprintf(stderr, "Unable to parse en passant, unrecognised rank character: %c\n", *string);
+					fprintf(stderr,
+					        "Unable to parse en passant, unrecognised rank character: %c\n",
+					        *string);
 						goto error;
 					}
+					epd->description[descriptionLength++] = *string;
+					epd->description = realloc(epd->description, descriptionLength + 1);
+					epd->description[descriptionLength] = 0;
 					++string;
 			
 					if ('1' <= *string && *string <= '8')
@@ -301,12 +328,17 @@ EPDFile* epd_read_file(char* filename)
 					}
 					else
 					{
-						fprintf(stderr, "Unable to parse en passant, unrecognised file character: %c\n", *string);
+						fprintf(stderr,
+						        "Unable to parse en passant, unrecognised file character: %c\n",
+						        *string);
 						goto error;
 					}
 			
 					epd->board.enPassant = 1ull << (brank*8 + bfile);
 				}
+				epd->description[descriptionLength++] = *string;
+				epd->description = realloc(epd->description, descriptionLength + 1);
+				epd->description[descriptionLength] = 0;
 				++string;
 				break;
 			case EPD_OPERATIONS:
@@ -318,7 +350,8 @@ EPDFile* epd_read_file(char* filename)
 				else if (*string != ' ')
 				{
 					epd->numOperations++;
-					epd->operations = realloc(epd->operations, sizeof(EPDOperation)*epd->numOperations);
+					epd->operations = realloc(epd->operations,
+					                          sizeof(EPDOperation)*epd->numOperations);
 					operation = &epd->operations[epd->numOperations - 1];
 
 					for (i = 0; i < 16; ++i)
@@ -352,7 +385,9 @@ EPDFile* epd_read_file(char* filename)
 					strncat(operation->opcode, string, 1);
 					if(strlen(operation->opcode) > 14)
 					{
-						fprintf(stderr, "Opcode was longer than 14 characters, %s\n", operation->opcode);
+						fprintf(stderr,
+						        "Opcode was longer than 14 characters, %s\n",
+						        operation->opcode);
 						goto error;
 					}
 				}
@@ -366,8 +401,7 @@ EPDFile* epd_read_file(char* filename)
 				else
 				{
 					operation->operand = realloc(operation->operand, operandLength + 2);
-					operation->operand[operandLength] = *string;
-					operandLength++;
+					operation->operand[operandLength++] = *string;
 					operation->operand[operandLength] = 0;
 				}
 				++string;
@@ -408,14 +442,35 @@ error:
 	return NULL;
 }
 
-void epd_file_free(EPDFile* epd)
+void epd_file_free(EPDFile* epdFile)
 {
+	int i = 0;
 
+	for (i = 0; i < epdFile->numEPD; ++i)
+	{
+		epd_free(&epdFile->epds[i]);
+	}
+
+	free(epdFile->epds);
+	epdFile->epds = NULL;
+	epdFile->numEPD = 0;
 }
 
 void epd_free(EPD* epd)
 {
+	int i = 0;
+	free(epd->board.stateHistory);
 
+	for (i = 0; i < epd->numOperations; ++i)
+	{
+		free(epd->operations[i].operand);
+	}
+
+	free(epd->operations);
+	epd->operations = NULL;
+	epd->numOperations = 0;
+
+	free(epd->description);
 }
 
 int epd_has_operation(EPD* epd, char* opcode)
