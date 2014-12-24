@@ -218,11 +218,18 @@ int singleLineInput()
 int xboardInput()
 {
 	char input[512] = "";
+	size_t inputLength = 0;
 
 	char *stream = fgets(input, 512, stdin);
 	if (!stream)
 	{
 		return 1;
+	}
+
+	inputLength = strlen(input) - 1;
+	while (input[inputLength] == '\n')
+	{
+		input[inputLength--] = 0;
 	}
 
 	LOG("xboard_input", input);
