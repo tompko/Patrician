@@ -2,6 +2,7 @@
 
 #include <malloc.h>
 
+#include "bitscans.h"
 #include "game.h"
 #include "board.h"
 #include "evaluation.h"
@@ -21,14 +22,20 @@ Move root_search (Board * board)
 	for (i = 0; i < numMoves; ++i)
 	{
 		make_move (board, &moves[i]);
-		int score = alpha_beta (board, -1000000, 1000000, 1);
-		unmake_move (board, moves[i]);
-
-		if (score < bestScore)
+		if ((board->sideToMove == BLACK &&
+			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+			(board->sideToMove == WHITE &&
+			!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
 		{
-			bestScore = score;
-			bestMove = moves[i];
+			int score = alpha_beta (board, -1000000, 1000000, 1);
+
+			if (score < bestScore)
+			{
+				bestScore = score;
+				bestMove = moves[i];
+			}
 		}
+		unmake_move (board, moves[i]);
 	}
 
 	return bestMove;
