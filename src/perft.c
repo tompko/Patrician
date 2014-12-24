@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "bitscans.h"
 #include "board.h"
 #include "move.h"
 #include "game.h"
@@ -70,6 +71,11 @@ unsigned int perft_perft(Board* board, unsigned int depth)
 	int i, nperft = 0;
 	Move moves[256];
 
+	if (depth == 0)
+	{
+		return 1;
+	}
+
 	TTEntry* ttentry = get_tt_entry_at_depth(board->zobrist, depth);
 	if (ttentry)
 	{
@@ -78,15 +84,16 @@ unsigned int perft_perft(Board* board, unsigned int depth)
 
 	unsigned int numMoves = generate_moves(board, moves);
 
-	if (depth == 1)
-	{
-		return numMoves;
-	}
-
 	for (i = 0; i < numMoves; ++i)
 	{
 		make_move(board, &moves[i]);
-		nperft += perft_perft(board, depth - 1);
+		if ((board->sideToMove == BLACK &&
+			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+			(board->sideToMove == WHITE &&
+			!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
+		{
+			nperft += perft_perft(board, depth - 1);
+		}
 		unmake_move(board, moves[i]);
 	}
 

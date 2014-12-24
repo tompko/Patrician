@@ -13,9 +13,6 @@
 
 #include "hashing/transposition_table.h"
 
-int is_valid_pseudo_move(Board* board, Move move);
-unsigned int filter_pseudo_moves(Board* board, Move* moves, unsigned int numMoves);
-
 unsigned int generate_white_moves(Board* board, Move* moves);
 unsigned int generate_black_moves(Board* board, Move* moves);
 
@@ -48,48 +45,7 @@ unsigned int generate_moves(Board* board, Move* moves)
 		num_moves = generate_black_moves(board, moves);
 	}
 
-	num_moves = filter_pseudo_moves(board, moves, num_moves);
-
 	return num_moves;
-}
-
-int is_valid_pseudo_move(Board* board, Move move)
-{
-	int valid = 1;
-
-	make_move(board, &move);
-	if ((board->sideToMove == BLACK &&
-		black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
-		(board->sideToMove == WHITE &&
-		white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
-	{
-		valid = 0;
-	}
-	unmake_move(board, move);
-
-	return valid;
-}
-
-unsigned int filter_pseudo_moves(Board* board, Move* moves, unsigned int numMoves)
-{
-	int i = 0, j = 0;
-
-	while(i < numMoves)
-	{
-		if (is_valid_pseudo_move(board, moves[i]))
-		{
-			++i;
-		}
-		else
-		{
-			for (j = i + 1; j < numMoves; ++j)
-			{
-				moves[j-1] = moves[j];
-			}
-			--numMoves;
-		}
-	}
-	return numMoves;
 }
 
 unsigned int generate_white_moves(Board* board, Move* moves)
