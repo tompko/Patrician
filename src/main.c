@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	INIT_LOG();
 	initCommands();
 	init_zobrist_keys();
-	init_transposition_table(256*1024*1024);
+	init_transposition_table(16*1024*1024);
 
 	printf("Patrician version 0.01\n");
 	printf("Copyright (C) 2012 Chris Tompkinson\n");
