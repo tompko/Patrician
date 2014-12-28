@@ -12,6 +12,7 @@
 #include "hashing/zobrist.h"
 #include "hashing/transposition_table.h"
 #include "io/epd.h"
+#include "moves/ray_attacks.h"
 #include "debug_log.h"
 
 typedef struct
@@ -61,6 +62,7 @@ int main(int argc, char** argv)
 	initCommands();
 	init_zobrist_keys();
 	init_transposition_table(16*1024*1024);
+	init_magic();
 
 	printf("Patrician version 0.01\n");
 	printf("Copyright (C) 2012 Chris Tompkinson\n");
