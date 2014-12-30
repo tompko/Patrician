@@ -32,3 +32,7 @@ release = release_env.Program(target='#bin/Patrician',
 release_env.Alias("release", "bin/Patrician")
 Default(release)
 
+utils_env = Environment(CCFLAGS=c_flags, CPPPATH="src")
+magic_finder = utils_env.Program(target="utils/magic_finder", source="utils/magic_finder.c")
+utils_env.Alias("magic_finder", "utils/magic_finder")
+
