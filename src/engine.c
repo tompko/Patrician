@@ -31,7 +31,7 @@ static GameMoves s_GameMoves;
 
 static char* s_ICSHost = NULL;
 static char* s_OpponentName = NULL;
-static enum EngineState s_EngineState;
+volatile static enum EngineState s_EngineState;
 static int s_RandomEvaluation = 0;
 static int s_ICSPlay = 0;
 static int s_ShowThinking = 0;
@@ -149,7 +149,7 @@ void engine_force_move(const char* moveString)
 	add_move_to_stack(move);
 	log_board(&s_CurrentBoard);
 	
-	if(s_EngineState == ENGINE_WAITING)
+	if(s_EngineState == ENGINE_WAITING || s_EngineState == ENGINE_PONDERING)
 	{
 		s_EngineState = ENGINE_THINKING;
 	}
