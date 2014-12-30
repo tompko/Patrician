@@ -181,7 +181,7 @@ int main() {
   for(square = 0; square < 64; square++)
   {
     printf("\t{attackTable + 0x%llx, 0x%llx, 0x%llx, %i},\n", position, rmask(square), find_magic(square, RBits[square], 0), RBits[square]);
-    position += 4096;
+    position += 1 << RBits[square];
   }
   printf("};\n\n");
  
@@ -189,7 +189,7 @@ int main() {
   for(square = 0; square < 64; square++)
   {
     printf("\t{attackTable + 0x%llx, 0x%llx, 0x%llx, %i},\n", position, bmask(square), find_magic(square, BBits[square], 1), BBits[square]);
-    position += 4096;
+    position += 1 << BBits[square];
   }
   printf("};\n\n");
 

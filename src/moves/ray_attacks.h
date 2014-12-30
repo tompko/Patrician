@@ -3,7 +3,7 @@
 
 #include "../board.h"
 
-#define ATTACK_TABLE_SIZE (0x80000)
+#define ATTACK_TABLE_SIZE (0x1a480)
 bitboard attackTable[ATTACK_TABLE_SIZE];
 
 typedef struct SMagic {
