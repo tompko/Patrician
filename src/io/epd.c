@@ -37,6 +37,7 @@ EPDFile* epd_read_file(char* filename)
 	int brank = 0, bfile = 0;
 	int operandLength = 0, descriptionLength = 0;
 	int done = 0;
+	int lineNo = 1;
 
 	file = fopen(filename, "r");
 
@@ -80,6 +81,7 @@ EPDFile* epd_read_file(char* filename)
 				else if (*string == '\n')
 				{
 					++string;
+					++lineNo;
 				}
 				else if (*string == 0)
 				{
@@ -110,6 +112,7 @@ EPDFile* epd_read_file(char* filename)
 			case EPD_COMMENT:
 				if (*string == '\n')
 				{
+					++lineNo;
 					state = EPD_START;
 				}
 				++string;
@@ -220,7 +223,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					default:
 						fprintf(stderr,
-						        "Unable to parse piece placement, unrecognised character: %c\n",
+						        "(%i) Unable to parse piece placement, unrecognised character: %c\n",
+						        lineNo,
 								*string);
 						goto error;
 				}
@@ -241,7 +245,8 @@ EPDFile* epd_read_file(char* filename)
 				else
 				{
 					fprintf(stderr,
-					        "Unable to parse side to move, unrecognised character: %c\n",
+					        "(%i) Unable to parse side to move, unrecognised character: %c\n",
+					        lineNo,
 					        *string);
 					goto error;
 				}
@@ -280,7 +285,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					default:
 						fprintf(stderr,
-						        "Unable to parse castling, unrecognised character: %c\n",
+						        "(%i) Unable to parse castling, unrecognised character: %c\n",
+						        lineNo,
 						        *string);
 						goto error;
 				}
@@ -312,9 +318,10 @@ EPDFile* epd_read_file(char* filename)
 					}
 					else
 					{
-					fprintf(stderr,
-					        "Unable to parse en passant, unrecognised rank character: %c\n",
-					        *string);
+						fprintf(stderr,
+						        "(%i) Unable to parse en passant, unrecognised rank character: %c\n",
+						        lineNo,
+						        *string);
 						goto error;
 					}
 					epd->description[descriptionLength++] = *string;
@@ -329,7 +336,8 @@ EPDFile* epd_read_file(char* filename)
 					else
 					{
 						fprintf(stderr,
-						        "Unable to parse en passant, unrecognised file character: %c\n",
+						        "(%i) Unable to parse en passant, unrecognised file character: %c\n",
+						        lineNo,
 						        *string);
 						goto error;
 					}
@@ -379,14 +387,17 @@ EPDFile* epd_read_file(char* filename)
 					    !('a' <= *string && *string <= 'z') &&
 					    !('A' <= *string && *string <= 'Z'))
 					{
-						fprintf(stderr, "Expected letter as first character of opcode\n");
+						fprintf(stderr,
+						        "(%i) Expected letter as first character of opcode\n",
+						        lineNo);
 						goto error;
 					}
 					strncat(operation->opcode, string, 1);
 					if(strlen(operation->opcode) > 14)
 					{
 						fprintf(stderr,
-						        "Opcode was longer than 14 characters, %s\n",
+						        "(%i) Opcode was longer than 14 characters, %s\n",
+						        lineNo,
 						        operation->opcode);
 						goto error;
 					}
