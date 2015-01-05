@@ -166,6 +166,10 @@ Move make_move_from_san(struct Board* board, const char* moveStr)
 				destRank = *moveStr - '1';
 				break;
 		}
+		if (*moveStr == ' ')
+		{
+			break;
+		}
 		++moveStr;
 	}
 
