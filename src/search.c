@@ -61,6 +61,8 @@ void search_test_search(EPDFile* epdFile)
 
 		if (epd_has_operation(epd, "bm"))
 		{
+			// bm - Best Move
+			// Pass if we found the same move
 			Move engineMove = root_search(&epd->board);
 			Move bestMove = epd_move_operation(epd, "bm");
 			char engineMoveStr[16], bestMoveStr[16];
@@ -78,7 +80,27 @@ void search_test_search(EPDFile* epdFile)
 				++hits;
 			}
 		}
-		// TODO - deal with 'am' operation too
+		else if (epd_has_operation(epd, "am"))
+		{
+			// am - Avoid move
+			// Pass if we found a different move
+			Move engineMove = root_search(&epd->board);
+			Move avoidMove = epd_move_operation(epd, "am");
+			char engineMoveStr[16], avoidMoveStr[16];
+
+			sprint_move(engineMoveStr, engineMove);
+			sprint_move(avoidMoveStr, avoidMove);
+
+			int sameMove = ((engineMove.from == avoidMove.from) &&
+			                (engineMove.to == avoidMove.to));
+			printf("Engine Move: %s\nAvoid Move: %s\n%s\n", engineMoveStr, avoidMoveStr,
+			sameMove ? "FAIL" : "PASS");
+
+			if (!sameMove)
+			{
+				++hits;
+			}
+		}
 	}
 	printf("Test finished: %i/%i (%.2f%%)\n", hits, epdFile->numEPD, (float)hits * 100 / (float)epdFile->numEPD);
 }
