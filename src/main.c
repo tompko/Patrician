@@ -9,6 +9,7 @@
 #include "gameTime.h"
 #include "engine.h"
 #include "perft.h"
+#include "search.h"
 #include "hashing/zobrist.h"
 #include "hashing/transposition_table.h"
 #include "io/epd.h"
@@ -53,6 +54,7 @@ int main(int argc, char** argv)
 	int done = 0;
 	int arg;
 	int exitStatus = EXIT_SUCCESS;
+	EPDFile* epdFile;
 
 	/*Turn off buffering on the output stream as recommended
 	  for the xboard protocol*/
@@ -68,13 +70,13 @@ int main(int argc, char** argv)
 	printf("Copyright (C) 2012 Chris Tompkinson\n");
 	printf("\n");
 
-	while ((arg = getopt(argc, argv, "p:")) != -1)
+	while ((arg = getopt(argc, argv, "p:s:")) != -1)
 	{
 		switch (arg)
 		{
 			case 'p':
 				printf("Performing perft with file: %s\n", optarg);
-				EPDFile* epdFile = epd_read_file(optarg);
+				epdFile = epd_read_file(optarg);
 				if (!epdFile)
 				{
 					exitStatus = EXIT_FAILURE;
@@ -90,6 +92,22 @@ int main(int argc, char** argv)
 					exitStatus = EXIT_FAILURE;
 					goto exit;
 				}
+				exitStatus = EXIT_SUCCESS;
+				goto exit;
+			case 's':
+				printf("Performing search test with file: %s\n", optarg);
+				epdFile = epd_read_file(optarg);
+				if (!epdFile)
+				{
+					exitStatus = EXIT_FAILURE;
+					goto exit;
+				}
+
+				search_test_search(epdFile);
+
+				epd_file_free(epdFile);
+				free(epdFile);
+
 				exitStatus = EXIT_SUCCESS;
 				goto exit;
 			default:

@@ -41,6 +41,7 @@ typedef struct Move
 struct Board;
 
 Move make_move_from_str(struct Board* board, const char* moveStr);
+Move make_move_from_san(struct Board* board, const char* moveStr);
 int is_move(const char* moveStr);
 void sprint_move(char* buffer, Move move);
 void log_move(Move move, const char* moveString, const char* moveType);

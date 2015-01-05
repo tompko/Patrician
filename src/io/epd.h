@@ -32,6 +32,7 @@ void epd_file_free(EPDFile* epd);
 int epd_has_operation(EPD* epd, char* opcode);
 int epd_int_operation(EPD* epd, char* opcode);
 unsigned int epd_uint_operation(EPD* epd, char* opcode);
+struct Move epd_move_operation(EPD* epd, char* opcode);
 
 #endif
 

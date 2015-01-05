@@ -1,10 +1,12 @@
+#include "move.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 
-#include "move.h"
+#include "game.h"
 #include "board.h"
 #include "bitscans.h"
 #include "hashing/zobrist.h"
@@ -101,6 +103,107 @@ Move make_move_from_str(Board* board, const char* moveStr)
 		}
 	}
 	move.side = move.piece % 2;
+	return move;
+}
+
+Move make_move_from_san(struct Board* board, const char* moveStr)
+{
+	Move move;
+	Move moves[256];
+	int destFile = -1, sourceFile = -1, destRank = -1, sourceRank = -1;
+	int to;
+	int numMoves;
+	int i;
+	const char *sanMove = moveStr;
+	unsigned int promotion = 0, promotion_capture = 0;
+
+	while(*moveStr)
+	{
+		switch (*moveStr)
+		{
+			case 'N':
+				promotion = PROMOTION_FLAG;
+				promotion_capture = promotion | CAPTURE_FLAG;
+				break;
+			case 'B':
+				promotion = PROMOTION_FLAG | SPECIAL0_FLAG;
+				promotion_capture = promotion | CAPTURE_FLAG;
+				break;
+			case 'R':
+				promotion = PROMOTION_FLAG | SPECIAL1_FLAG;
+				promotion_capture = promotion | CAPTURE_FLAG;
+				break;
+			case 'Q':
+				promotion = PROMOTION_FLAG | SPECIAL1_FLAG | SPECIAL0_FLAG;
+				promotion_capture = promotion | CAPTURE_FLAG;
+				break;
+			case 'a':
+			case 'b':
+			case 'c':
+			case 'd':
+			case 'e':
+			case 'f':
+			case 'g':
+			case 'h':
+				if (destFile != -1)
+				{
+					sourceFile = destFile;
+				}
+				destFile = *moveStr - 'a';
+				break;
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+				if (destRank != -1)
+				{
+					sourceRank = destRank;
+				}
+				destRank = *moveStr - '1';
+				break;
+		}
+		++moveStr;
+	}
+
+	to = (destRank * 8) + destFile;
+
+	numMoves = generate_moves(board, moves);
+
+	for (i = 0; i < numMoves; ++i)
+	{
+		if (moves[i].to != to)
+		{
+			continue;
+		}
+
+		if (((moves[i].flags & PROMOTION_FLAG) != 0) &&
+		    (moves[i].flags != promotion) &&
+		    (moves[i].flags != promotion_capture))
+		{
+			continue;
+		}
+
+		if ((sourceFile != -1) &&
+		    (sourceFile != moves[i].from % 8))
+		{
+			continue;
+		}
+
+		if ((sourceRank != -1) &&
+			(sourceRank != moves[i].from / 8))
+		{
+			continue;
+		}
+
+		return moves[i];
+	}
+
+	fprintf(stderr, "Error, unable to parse SAN move %s\n", sanMove);
+	memset(&move, 0, sizeof(Move));
 	return move;
 }
 

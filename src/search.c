@@ -7,6 +7,7 @@
 #include "board.h"
 #include "evaluation.h"
 #include "move.h"
+#include "io/epd.h"
 
 int alpha_beta (Board * board, int alpha, int beta, int depth);
 
@@ -39,6 +40,42 @@ Move root_search (Board * board)
 	}
 
 	return bestMove;
+}
+
+void search_test_search(EPDFile* epdFile)
+{
+	int i = 0;
+	int hits = 0;
+
+	printf("Testing %i positions\n", epdFile->numEPD);
+
+	for (i = 0; i < epdFile->numEPD; ++i)
+	{
+		EPD* epd = &epdFile->epds[i];
+
+		printf("%i/%i %s\n", i + 1, epdFile->numEPD, epd->description);
+
+		if (epd_has_operation(epd, "bm"))
+		{
+			Move engineMove = root_search(&epd->board);
+			Move bestMove = epd_move_operation(epd, "bm");
+			char engineMoveStr[16], bestMoveStr[16];
+
+			sprint_move(engineMoveStr, engineMove);
+			sprint_move(bestMoveStr, bestMove);
+
+			int sameMove = ((engineMove.from == bestMove.from) &&
+			                (engineMove.to == bestMove.to));
+			printf("Engine Move: %s\nBest Move: %s\n%s\n", engineMoveStr, bestMoveStr,
+			sameMove ? "PASS" : "FAIL");
+
+			if (sameMove)
+			{
+				++hits;
+			}
+		}
+	}
+	printf("Test finished: %i/%i (%.2f%%)\n", hits, epdFile->numEPD, (float)hits * 100 / (float)epdFile->numEPD);
 }
 
 int alpha_beta (Board * board, int alpha, int beta, int depth)

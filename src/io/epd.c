@@ -515,3 +515,19 @@ unsigned int epd_uint_operation(EPD* epd, char* opcode)
 	return 0;
 }
 
+Move epd_move_operation(EPD* epd, char* opcode)
+{
+	int i;
+	Move move;
+
+	for (i = 0; i < epd->numOperations; ++i)
+	{
+		if (!strcmp(epd->operations[i].opcode, opcode))
+		{
+			return make_move_from_san(&epd->board, epd->operations[i].operand);
+		}
+	}
+
+	return move;
+}
+
