@@ -54,6 +54,10 @@ void search_test_search(EPDFile* epdFile)
 		EPD* epd = &epdFile->epds[i];
 
 		printf("%i/%i %s\n", i + 1, epdFile->numEPD, epd->description);
+		if (epd_has_operation(epd, "id"))
+		{
+			printf("id: %s\n", epd_string_operation(epd, "id"));
+		}
 
 		if (epd_has_operation(epd, "bm"))
 		{
@@ -74,6 +78,7 @@ void search_test_search(EPDFile* epdFile)
 				++hits;
 			}
 		}
+		// TODO - deal with 'am' operation too
 	}
 	printf("Test finished: %i/%i (%.2f%%)\n", hits, epdFile->numEPD, (float)hits * 100 / (float)epdFile->numEPD);
 }

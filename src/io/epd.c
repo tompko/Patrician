@@ -526,11 +526,26 @@ unsigned int epd_uint_operation(EPD* epd, char* opcode)
 	return 0;
 }
 
+const char* epd_string_operation(EPD* epd, char* opcode)
+{
+	int i;
+	for (i = 0; i < epd->numOperations; ++i)
+	{
+		if (!strcmp(epd->operations[i].opcode, opcode))
+		{
+			return epd->operations[i].operand;
+		}
+	}
+
+	return NULL;
+}
+
 Move epd_move_operation(EPD* epd, char* opcode)
 {
 	int i;
 	Move move;
 
+	// TODO - cope with space separated lists of moves
 	for (i = 0; i < epd->numOperations; ++i)
 	{
 		if (!strcmp(epd->operations[i].opcode, opcode))
