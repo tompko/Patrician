@@ -335,12 +335,6 @@ void make_move(Board* board, Move* move)
 		{
 			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
 		}
-
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if ((move->flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
 	{
@@ -392,11 +386,6 @@ void make_move(Board* board, Move* move)
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[move->capturedPiece][move->to];
 		board->zobrist ^= pieceKeys[promoPiece][move->to];
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if (move->flags & PROMOTION_FLAG)
 	{
@@ -411,11 +400,6 @@ void make_move(Board* board, Move* move)
 
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[promoPiece][move->to];
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if ((move->flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
 	{
@@ -433,11 +417,6 @@ void make_move(Board* board, Move* move)
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[move->piece][move->to];
 		board->zobrist ^= pieceKeys[move->capturedPiece][bit_scan_forward(captureSquare)];
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if (move->flags & CAPTURE_FLAG)
 	{
@@ -515,12 +494,6 @@ void make_move(Board* board, Move* move)
 				board->castling &= ~(1ull << BLACK_KINGSIDE);
 			}   
 		}
-
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if (move->flags & SPECIAL1_FLAG)
 	{
@@ -565,12 +538,6 @@ void make_move(Board* board, Move* move)
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
 		rookFromTo = clear_lsb(rookFromTo);
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
-
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
 	}
 	else if (move->flags & SPECIAL0_FLAG)
 	{
@@ -582,15 +549,13 @@ void make_move(Board* board, Move* move)
 
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[move->piece][move->to];
-		board->zobrist ^= castlingKeys[board->castling];
-		if (board->enPassant)
-		{
-			board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
-		}
+		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 
 	board->sideToMove = 1 - board->sideToMove;
 	board->zobrist ^= blackToMoveKey;
+	board->zobrist ^= castlingKeys[board->castling];
+
 	verify_board(board);
 }
 
