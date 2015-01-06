@@ -62,27 +62,28 @@ enum Castling
 
 typedef struct BoardState
 {
-	bitboard enPassant;			 //The file to capture on if available
-	unsigned int castling;		  //Castling availability
-	unsigned int halfmove;		  //The number of half moves since the last capture or pawn move
+	bitboard enPassant;		// The file to capture on if available
+	unsigned int castling;	// Castling availability
+	unsigned int halfmove;	// The number of half moves since the last capture or pawn move
 } BoardState;
 
 typedef struct Board
 {
-	bitboard pieces[NUM_PIECES];   //One bitboard for each piece type
-	bitboard sides[NUM_COLOURS];   //Occupancy per side
-	bitboard empty;				//All empty squares
-	bitboard occupied;			 //All occupied squares
-	bitboard enPassant;			 //The file to capture on if available
+	bitboard pieces[NUM_PIECES];	// One bitboard for each piece type
+	bitboard sides[NUM_COLOURS];	// Occupancy per side
+	bitboard empty;					// All empty squares
+	bitboard occupied;				// All occupied squares
+	bitboard enPassant;				// The file to capture on if available
 
-	unsigned long long zobrist;	 //Zobrist hash for the board
+	unsigned char mailbox[64];		// Mailbox(8x8) representation of the board
+	unsigned long long zobrist;		// Zobrist hash for the board
 	BoardState* stateHistory;
-	unsigned int castling;		  //Castling availability
-	unsigned int halfmove;		  //The number of half moves since the last capture or pawn move
+	unsigned int castling;			// Castling availability
+	unsigned int halfmove;			// The number of half moves since the last capture or pawn move
 	unsigned int numHistory;
 	unsigned int maxHistory;
-	unsigned int move;			  //The number of full moves
-	unsigned char sideToMove;	   //which side has the next move
+	unsigned int move;				// The number of full moves
+	unsigned char sideToMove;		// Which side has the next move
 } Board;
 
 int set_from_FEN(Board* board, const char* FEN);
@@ -93,4 +94,12 @@ void log_board(Board* board);
 void push_state(Board* board);
 void pop_state(Board* board);
 
+// Asserts that the board is correctly formed, i.e.:
+// - the composite bitboards are set correctly
+// - the zobrist key matches the state of the board
+// - the mailbox and bitboard representations agree
+// only active in debug builds
+void verify_board(Board* board);
+
 #endif
+

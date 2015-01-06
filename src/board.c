@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "hashing/zobrist.h"
 #include "bitscans.h"
@@ -106,8 +107,14 @@ bitboard backranks[] =
 
 int set_from_FEN(Board* board, const char* FEN)
 {
+	int i;
 	int rank = 7, file = 0;
 	memset(board, 0, sizeof(Board));
+
+	for (i = 0; i < 64; ++i)
+	{
+		board->mailbox[i] = NUM_PIECES;
+	}
 
 	board->stateHistory = (BoardState*)malloc(sizeof(BoardState));
 	board->numHistory = 0;
@@ -119,72 +126,84 @@ int set_from_FEN(Board* board, const char* FEN)
 		{
 			case 'r':
 			{
+				board->mailbox[rank*8 + file] = BLACK_ROOK;
 				board->pieces[BLACK_ROOK] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'n':
 			{
+				board->mailbox[rank*8 + file] = BLACK_KNIGHT;
 				board->pieces[BLACK_KNIGHT] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'b':
 			{
+				board->mailbox[rank*8 + file] = BLACK_BISHOP;
 				board->pieces[BLACK_BISHOP] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'q':
 			{
+				board->mailbox[rank*8 + file] = BLACK_QUEEN;
 				board->pieces[BLACK_QUEEN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'k':
 			{
+				board->mailbox[rank*8 + file] = BLACK_KING;
 				board->pieces[BLACK_KING] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'p':
 			{
+				board->mailbox[rank*8 + file] = BLACK_PAWN;
 				board->pieces[BLACK_PAWN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'R':
 			{
+				board->mailbox[rank*8 + file] = WHITE_ROOK;
 				board->pieces[WHITE_ROOK] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'N':
 			{
+				board->mailbox[rank*8 + file] = WHITE_KNIGHT;
 				board->pieces[WHITE_KNIGHT] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'B':
 			{
+				board->mailbox[rank*8 + file] = WHITE_BISHOP;
 				board->pieces[WHITE_BISHOP] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'Q':
 			{
+				board->mailbox[rank*8 + file] = WHITE_QUEEN;
 				board->pieces[WHITE_QUEEN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'K':
 			{
+				board->mailbox[rank*8 + file] = WHITE_KING;
 				board->pieces[WHITE_KING] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
 			}
 			case 'P':
 			{
+				board->mailbox[rank*8 + file] = WHITE_PAWN;
 				board->pieces[WHITE_PAWN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -325,6 +344,8 @@ int set_from_FEN(Board* board, const char* FEN)
 
 	board->zobrist = calculate_zobrist(board);
 
+	verify_board(board);
+
 	return 1;
 }
 
@@ -432,3 +453,43 @@ void pop_state(Board* board)
 	board->castling = board->stateHistory[board->numHistory].castling;
 	board->halfmove = board->stateHistory[board->numHistory].halfmove;
 }
+
+void verify_board(Board* board)
+{
+#ifndef NDEBUG
+
+	int i;
+	bitboard occupied = 0;
+	bitboard whitePieces = 0, blackPieces = 0;
+	bitboard pieces[NUM_PIECES + 1] = {0};
+
+	for (i = 0; i < NUM_PIECES; ++i)
+	{
+		occupied |= board->pieces[i];
+	}
+	assert(occupied == board->occupied);
+	assert(~occupied == board->empty);
+
+	for (i = 0; i < NUM_PIECES; i += 2)
+	{
+		whitePieces |= board->pieces[i + WHITE];
+		blackPieces |= board->pieces[i + BLACK];
+	}
+	assert(whitePieces == board->sides[WHITE]);
+	assert(blackPieces == board->sides[BLACK]);
+
+	assert(board->zobrist == calculate_zobrist(board));
+
+	for (i = 0; i < 64; ++i)
+	{
+		pieces[board->mailbox[i]] |= 1ull << i;
+	}
+
+	for (i = 0; i < NUM_PIECES; ++i)
+	{
+		assert(pieces[i] == board->pieces[i]);
+	}
+
+#endif
+}
+

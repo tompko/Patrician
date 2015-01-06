@@ -103,6 +103,11 @@ EPDFile* epd_read_file(char* filename)
 					bfile = 0;
 					memset(&epd->board, 0, sizeof(Board));
 
+					for (i = 0; i < 64; ++i)
+					{
+						epd->board.mailbox[i] = NUM_PIECES;
+					}
+
 					epd->board.stateHistory = (BoardState*)malloc(sizeof(BoardState));
 					epd->board.numHistory = 0;
 					epd->board.maxHistory = 1;
@@ -121,6 +126,7 @@ EPDFile* epd_read_file(char* filename)
 				switch(*string)
 				{
 					case 'r':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_ROOK;
 						epd->board.pieces[BLACK_ROOK] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -128,6 +134,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'n':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_KNIGHT;
 						epd->board.pieces[BLACK_KNIGHT] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -135,6 +142,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'b':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_BISHOP;
 						epd->board.pieces[BLACK_BISHOP] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -142,6 +150,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'q':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_QUEEN;
 						epd->board.pieces[BLACK_QUEEN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -149,6 +158,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'k':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_KING;
 						epd->board.pieces[BLACK_KING] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -156,6 +166,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'p':
+						epd->board.mailbox[brank*8 + bfile] = BLACK_PAWN;
 						epd->board.pieces[BLACK_PAWN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -163,6 +174,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'R':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_ROOK;
 						epd->board.pieces[WHITE_ROOK] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -170,6 +182,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'N':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_KNIGHT;
 						epd->board.pieces[WHITE_KNIGHT] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -177,6 +190,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'B':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_BISHOP;
 						epd->board.pieces[WHITE_BISHOP] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -184,6 +198,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'Q':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_QUEEN;
 						epd->board.pieces[WHITE_QUEEN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -191,6 +206,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'K':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_KING;
 						epd->board.pieces[WHITE_KING] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -198,6 +214,7 @@ EPDFile* epd_read_file(char* filename)
 						++bfile;
 						break;
 					case 'P':
+						epd->board.mailbox[brank*8 + bfile] = WHITE_PAWN;
 						epd->board.pieces[WHITE_PAWN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -303,10 +320,13 @@ EPDFile* epd_read_file(char* filename)
 				else if (*string == ' ')
 				{
 					epd->board.zobrist = calculate_zobrist(&epd->board);
+					verify_board(&epd->board);
 					state = EPD_OPERATIONS;
 				}
 				else if (*string == '\n' || *string == 0)
 				{
+					epd->board.zobrist = calculate_zobrist(&epd->board);
+					verify_board(&epd->board);
 					state = EPD_END;
 					--string;
 				}

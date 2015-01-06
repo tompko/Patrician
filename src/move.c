@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include "game.h"
 #include "board.h"
@@ -293,6 +292,8 @@ void make_move(Board* board, Move* move)
 		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 	board->enPassant = 0;
+	board->mailbox[move->from] = NUM_PIECES;
+	board->mailbox[move->to] = move->piece;
 
 	if (move->flags == 0)
 	{
@@ -350,6 +351,7 @@ void make_move(Board* board, Move* move)
 		board->pieces[promoPiece] ^= toBB;
 		board->sides[move->side] ^= fromToBB;
 		board->sides[1-move->side] ^= toBB;
+		board->mailbox[move->to] = promoPiece;
 
 		for (i = 0; i < 6; ++i)
 		{
@@ -405,6 +407,7 @@ void make_move(Board* board, Move* move)
 		board->sides[move->side] ^= fromToBB;
 		board->occupied ^= fromToBB;
 		board->empty ^= fromToBB;
+		board->mailbox[move->to] = promoPiece;
 
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[promoPiece][move->to];
@@ -425,6 +428,7 @@ void make_move(Board* board, Move* move)
 		board->empty ^= fromToBB | captureSquare;
 		move->capturedPiece = PAWN + (1 - move->side);
 		board->pieces[move->capturedPiece] ^= captureSquare;
+		board->mailbox[bit_scan_forward(captureSquare)] = NUM_PIECES;
 
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[move->piece][move->to];
@@ -521,22 +525,31 @@ void make_move(Board* board, Move* move)
 	else if (move->flags & SPECIAL1_FLAG)
 	{
 		int rookIndex = ROOK + move->side;
+		int rookFrom, rookTo;
 		bitboard rookFromTo;
+
 		if (move->flags & SPECIAL0_FLAG)
 		{
 			rookFromTo = ((1ull << A1) | (1ull << A8)) & backranks[move->side];
+			rookFrom = bit_scan_forward(rookFromTo);
+			rookTo = rookFrom + 3;
 			rookFromTo |= rookFromTo << 3;
 		}
 		else
 		{
 			rookFromTo = ((1ull << H1) | (1ull << H8)) & backranks[move->side];
+			rookFrom = bit_scan_forward(rookFromTo);
+			rookTo = rookFrom - 2;
 			rookFromTo |= rookFromTo >> 2;
 		}
+
 		board->pieces[move->piece] ^= fromToBB;
 		board->pieces[rookIndex] ^= rookFromTo;
 		board->sides[move->side] ^= fromToBB | rookFromTo;
 		board->occupied ^= fromToBB | rookFromTo;
 		board->empty ^= fromToBB | rookFromTo;
+		board->mailbox[rookFrom] = NUM_PIECES;
+		board->mailbox[rookTo] = rookIndex;
 
 		if (move->side == WHITE)
 		{
@@ -578,7 +591,7 @@ void make_move(Board* board, Move* move)
 
 	board->sideToMove = 1 - board->sideToMove;
 	board->zobrist ^= blackToMoveKey;
-	assert(board->zobrist == calculate_zobrist(board));
+	verify_board(board);
 }
 
 void unmake_move(Board* board, Move move)
@@ -586,6 +599,9 @@ void unmake_move(Board* board, Move move)
 	bitboard fromBB = 1ull << move.from;
 	bitboard toBB = 1ull << move.to;
 	bitboard fromToBB = fromBB | toBB;
+
+	board->mailbox[move.from] = move.piece;
+	board->mailbox[move.to] = NUM_PIECES;
 
 	if (move.flags == 0)
 	{
@@ -605,6 +621,7 @@ void unmake_move(Board* board, Move move)
 		board->sides[move.side] ^= fromToBB;
 		board->sides[1-move.side] ^= toBB;
 		board->pieces[move.capturedPiece] ^= toBB;
+		board->mailbox[move.to] = move.capturedPiece;
 
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
@@ -636,6 +653,7 @@ void unmake_move(Board* board, Move move)
 		board->occupied ^= fromToBB | captureSquare;
 		board->empty ^= fromToBB | captureSquare;
 		board->pieces[move.capturedPiece] ^= captureSquare;
+		board->mailbox[bit_scan_forward(captureSquare)] = move.capturedPiece;
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
@@ -649,6 +667,7 @@ void unmake_move(Board* board, Move move)
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
 		board->pieces[move.capturedPiece] ^= toBB;
+		board->mailbox[move.to] = move.capturedPiece;
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
@@ -657,16 +676,21 @@ void unmake_move(Board* board, Move move)
 	else if (move.flags & SPECIAL1_FLAG)
 	{
 		int rookIndex = ROOK + move.side;
+		int rookFrom, rookTo;
 		bitboard rookFromTo;
 
 		if (move.flags & SPECIAL0_FLAG)
 		{
 			rookFromTo = ((1ull << D1) | (1ull << D8)) & backranks[move.side];
+			rookTo = bit_scan_forward(rookFromTo);
+			rookFrom = rookTo - 3;
 			rookFromTo |= rookFromTo >> 3;
 		}
 		else
 		{
 			rookFromTo = ((1ull << F1) | (1ull << F8)) & backranks[move.side];
+			rookTo = bit_scan_forward(rookFromTo);
+			rookFrom = rookTo + 2;
 			rookFromTo |= rookFromTo << 2;
 		}
 
@@ -675,6 +699,8 @@ void unmake_move(Board* board, Move move)
 		board->sides[move.side] ^= fromToBB | rookFromTo;
 		board->occupied ^= fromToBB | rookFromTo;
 		board->empty ^= fromToBB | rookFromTo;
+		board->mailbox[rookTo] = NUM_PIECES;
+		board->mailbox[rookFrom] = rookIndex;
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
@@ -706,5 +732,6 @@ void unmake_move(Board* board, Move move)
 		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 	board->zobrist ^= blackToMoveKey;
-	assert(board->zobrist == calculate_zobrist(board));
+	verify_board(board);
 }
+
