@@ -22,7 +22,7 @@ Move root_search (Board * board)
 
 	for (i = 0; i < numMoves; ++i)
 	{
-		make_move (board, &moves[i]);
+		make_move (board, moves[i]);
 		if ((board->sideToMove == BLACK &&
 			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
 			(board->sideToMove == WHITE &&
@@ -119,7 +119,7 @@ int alpha_beta (Board * board, int alpha, int beta, int depth)
 
 	for (i = 0; i < numMoves; ++i)
 	{
-		make_move (board, &moves[i]);
+		make_move (board, moves[i]);
 		int score = -alpha_beta (board, -beta, -alpha, depth - 1);
 		unmake_move (board, moves[i]);
 

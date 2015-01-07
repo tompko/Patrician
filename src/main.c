@@ -224,7 +224,7 @@ int singleLineInput()
 	else if(is_move(input))
 	{
 		Move move = make_move_from_str(&s_Board, input);
-		make_move(&s_Board, &move);
+		make_move(&s_Board, move);
 	}
 	else if (!validCommand)
 	{

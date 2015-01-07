@@ -145,7 +145,7 @@ void engine_force_move(const char* moveString)
 	Move move =  make_move_from_str(&s_CurrentBoard, moveString);
 	log_board(&s_CurrentBoard);
 	log_move(move, moveString, "usermove");
-	make_move(&s_CurrentBoard, &move);
+	make_move(&s_CurrentBoard, move);
 	add_move_to_stack(move);
 	log_board(&s_CurrentBoard);
 	
@@ -224,7 +224,7 @@ void engine_thread(void)
 					break;
 				}
 
-				make_move(&s_CurrentBoard, &move);
+				make_move(&s_CurrentBoard, move);
 				log_move(move, "", "enginemove");
 				add_move_to_stack(move);
 				sprint_move(moveBuffer, move);

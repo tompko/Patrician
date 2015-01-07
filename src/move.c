@@ -279,10 +279,10 @@ void log_move(Move move, const char* moveString, const char* moveType)
 	free(moveBuffer);
 }
 
-void make_move(Board* board, Move* move)
+void make_move(Board* board, Move move)
 {
-	bitboard fromBB = 1ull << move->from;
-	bitboard toBB = 1ull << move->to;
+	bitboard fromBB = 1ull << move.from;
+	bitboard toBB = 1ull << move.to;
 	bitboard fromToBB = fromBB | toBB;
 
 	push_state(board);
@@ -292,218 +292,218 @@ void make_move(Board* board, Move* move)
 		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 	board->enPassant = 0;
-	board->mailbox[move->from] = NUM_PIECES;
-	board->mailbox[move->to] = move->piece;
+	board->mailbox[move.from] = NUM_PIECES;
+	board->mailbox[move.to] = move.piece;
 
-	if (move->flags == 0)
+	if (move.flags == 0)
 	{
-		board->pieces[move->piece] ^= fromToBB;
-		board->sides[move->side] ^= fromToBB;
+		board->pieces[move.piece] ^= fromToBB;
+		board->sides[move.side] ^= fromToBB;
 		board->occupied ^= fromToBB;
 		board->empty ^= fromToBB;
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->piece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.piece][move.to];
 
-		if (move->piece == WHITE_ROOK)
+		if (move.piece == WHITE_ROOK)
 		{
-			if (move->from == A1)
+			if (move.from == A1)
 			{
 				board->castling &= ~(1ull << WHITE_QUEENSIDE);
 			}
-			else if (move->from == H1)
+			else if (move.from == H1)
 			{
 				board->castling &= ~(1ull << WHITE_KINGSIDE);
 			}
 		}
-		else if (move->piece == BLACK_ROOK)
+		else if (move.piece == BLACK_ROOK)
 		{
-			if (move->from == A8)
+			if (move.from == A8)
 			{
 				board->castling &= ~(1ull << BLACK_QUEENSIDE);
 			}
-			else if (move->from == H8)
+			else if (move.from == H8)
 			{
 				board->castling &= ~(1ull << BLACK_KINGSIDE);
 			}   
 		}
-		else if (move->piece == WHITE_KING)
+		else if (move.piece == WHITE_KING)
 		{
 			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
 		}
-		else if (move->piece == BLACK_KING)
+		else if (move.piece == BLACK_KING)
 		{
 			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
 		}
 	}
-	else if ((move->flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
+	else if ((move.flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
 	{
-		int promoPiece = promotionPieces[move->flags & 3] + move->side;
+		int promoPiece = promotionPieces[move.flags & 3] + move.side;
 
-		board->pieces[move->piece] ^= fromBB;
+		board->pieces[move.piece] ^= fromBB;
 		board->pieces[promoPiece] ^= toBB;
-		board->pieces[move->capturedPiece] ^= toBB;
-		board->sides[move->side] ^= fromToBB;
-		board->sides[1-move->side] ^= toBB;
-		board->mailbox[move->to] = promoPiece;
+		board->pieces[move.capturedPiece] ^= toBB;
+		board->sides[move.side] ^= fromToBB;
+		board->sides[1-move.side] ^= toBB;
+		board->mailbox[move.to] = promoPiece;
 
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
 
-		if (move->capturedPiece == WHITE_ROOK)
+		if (move.capturedPiece == WHITE_ROOK)
 		{
-			if (move->to == A1)
+			if (move.to == A1)
 			{
 				board->castling &= ~(1ull << WHITE_QUEENSIDE);
 			}
-			else if (move->to == H1)
+			else if (move.to == H1)
 			{
 				board->castling &= ~(1ull << WHITE_KINGSIDE);
 			}
 		}
-		else if (move->capturedPiece == BLACK_ROOK)
+		else if (move.capturedPiece == BLACK_ROOK)
 		{
-			if (move->to == A8)
+			if (move.to == A8)
 			{
 				board->castling &= ~(1ull << BLACK_QUEENSIDE);
 			}
-			else if (move->to == H8)
+			else if (move.to == H8)
 			{
 				board->castling &= ~(1ull << BLACK_KINGSIDE);
 			}   
 		}
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->capturedPiece][move->to];
-		board->zobrist ^= pieceKeys[promoPiece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
+		board->zobrist ^= pieceKeys[promoPiece][move.to];
 	}
-	else if (move->flags & PROMOTION_FLAG)
+	else if (move.flags & PROMOTION_FLAG)
 	{
-		int promoPiece = promotionPieces[move->flags & 3] + move->side;
+		int promoPiece = promotionPieces[move.flags & 3] + move.side;
 
-		board->pieces[move->piece] ^= fromBB;
+		board->pieces[move.piece] ^= fromBB;
 		board->pieces[promoPiece] ^= toBB;
-		board->sides[move->side] ^= fromToBB;
+		board->sides[move.side] ^= fromToBB;
 		board->occupied ^= fromToBB;
 		board->empty ^= fromToBB;
-		board->mailbox[move->to] = promoPiece;
+		board->mailbox[move.to] = promoPiece;
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[promoPiece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[promoPiece][move.to];
 	}
-	else if ((move->flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
+	else if ((move.flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
 	{
 		bitboard captureSquare = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
 
-		board->pieces[move->piece] ^= fromToBB;
-		board->sides[move->side] ^= fromToBB;
-		board->sides[1 - move->side] ^= captureSquare;
+		board->pieces[move.piece] ^= fromToBB;
+		board->sides[move.side] ^= fromToBB;
+		board->sides[1 - move.side] ^= captureSquare;
 		board->occupied ^= fromToBB | captureSquare;
 		board->empty ^= fromToBB | captureSquare;
-		board->pieces[move->capturedPiece] ^= captureSquare;
+		board->pieces[move.capturedPiece] ^= captureSquare;
 		board->mailbox[bit_scan_forward(captureSquare)] = NUM_PIECES;
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->piece][move->to];
-		board->zobrist ^= pieceKeys[move->capturedPiece][bit_scan_forward(captureSquare)];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.piece][move.to];
+		board->zobrist ^= pieceKeys[move.capturedPiece][bit_scan_forward(captureSquare)];
 	}
-	else if (move->flags & CAPTURE_FLAG)
+	else if (move.flags & CAPTURE_FLAG)
 	{
-		board->pieces[move->piece] ^= fromToBB;
-		board->pieces[move->capturedPiece] ^= toBB;
-		board->sides[move->side] ^= fromToBB;
-		board->sides[1-move->side] ^= toBB;
+		board->pieces[move.piece] ^= fromToBB;
+		board->pieces[move.capturedPiece] ^= toBB;
+		board->sides[move.side] ^= fromToBB;
+		board->sides[1-move.side] ^= toBB;
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->piece][move->to];
-		board->zobrist ^= pieceKeys[move->capturedPiece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.piece][move.to];
+		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
 
-		if (move->piece == WHITE_ROOK)
+		if (move.piece == WHITE_ROOK)
 		{
-			if (move->from == A1)
+			if (move.from == A1)
 			{
 				board->castling &= ~(1ull << WHITE_QUEENSIDE);
 			}
-			else if (move->from == H1)
+			else if (move.from == H1)
 			{
 				board->castling &= ~(1ull << WHITE_KINGSIDE);
 			}
 		}
-		else if (move->piece == BLACK_ROOK)
+		else if (move.piece == BLACK_ROOK)
 		{
-			if (move->from == A8)
+			if (move.from == A8)
 			{
 				board->castling &= ~(1ull << BLACK_QUEENSIDE);
 			}
-			else if (move->from == H8)
+			else if (move.from == H8)
 			{
 				board->castling &= ~(1ull << BLACK_KINGSIDE);
 			}   
 		}
-		else if (move->piece == WHITE_KING)
+		else if (move.piece == WHITE_KING)
 		{
 			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
 		}
-		else if (move->piece == BLACK_KING)
+		else if (move.piece == BLACK_KING)
 		{
 			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
 		}
 
-		if (move->capturedPiece == WHITE_ROOK)
+		if (move.capturedPiece == WHITE_ROOK)
 		{
-			if (move->to == A1)
+			if (move.to == A1)
 			{
 				board->castling &= ~(1ull << WHITE_QUEENSIDE);
 			}
-			else if (move->to == H1)
+			else if (move.to == H1)
 			{
 				board->castling &= ~(1ull << WHITE_KINGSIDE);
 			}
 		}
-		else if (move->capturedPiece == BLACK_ROOK)
+		else if (move.capturedPiece == BLACK_ROOK)
 		{
-			if (move->to == A8)
+			if (move.to == A8)
 			{
 				board->castling &= ~(1ull << BLACK_QUEENSIDE);
 			}
-			else if (move->to == H8)
+			else if (move.to == H8)
 			{
 				board->castling &= ~(1ull << BLACK_KINGSIDE);
 			}   
 		}
 	}
-	else if (move->flags & SPECIAL1_FLAG)
+	else if (move.flags & SPECIAL1_FLAG)
 	{
-		int rookIndex = ROOK + move->side;
+		int rookIndex = ROOK + move.side;
 		int rookFrom, rookTo;
 		bitboard rookFromTo;
 
-		if (move->flags & SPECIAL0_FLAG)
+		if (move.flags & SPECIAL0_FLAG)
 		{
-			rookFromTo = ((1ull << A1) | (1ull << A8)) & backranks[move->side];
+			rookFromTo = ((1ull << A1) | (1ull << A8)) & backranks[move.side];
 			rookFrom = bit_scan_forward(rookFromTo);
 			rookTo = rookFrom + 3;
 			rookFromTo |= rookFromTo << 3;
 		}
 		else
 		{
-			rookFromTo = ((1ull << H1) | (1ull << H8)) & backranks[move->side];
+			rookFromTo = ((1ull << H1) | (1ull << H8)) & backranks[move.side];
 			rookFrom = bit_scan_forward(rookFromTo);
 			rookTo = rookFrom - 2;
 			rookFromTo |= rookFromTo >> 2;
 		}
 
-		board->pieces[move->piece] ^= fromToBB;
+		board->pieces[move.piece] ^= fromToBB;
 		board->pieces[rookIndex] ^= rookFromTo;
-		board->sides[move->side] ^= fromToBB | rookFromTo;
+		board->sides[move.side] ^= fromToBB | rookFromTo;
 		board->occupied ^= fromToBB | rookFromTo;
 		board->empty ^= fromToBB | rookFromTo;
 		board->mailbox[rookFrom] = NUM_PIECES;
 		board->mailbox[rookTo] = rookIndex;
 
-		if (move->side == WHITE)
+		if (move.side == WHITE)
 		{
 			board->castling &= (1ull << BLACK_KINGSIDE) | (1ull << BLACK_QUEENSIDE);
 		}
@@ -512,22 +512,22 @@ void make_move(Board* board, Move* move)
 			board->castling &= (1ull << WHITE_KINGSIDE) | (1ull << WHITE_QUEENSIDE);
 		}
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->piece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.piece][move.to];
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
 		rookFromTo = clear_lsb(rookFromTo);
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
 	}
-	else if (move->flags & SPECIAL0_FLAG)
+	else if (move.flags & SPECIAL0_FLAG)
 	{
-		board->pieces[move->piece] ^= fromToBB;
-		board->sides[move->side] ^= fromToBB;
+		board->pieces[move.piece] ^= fromToBB;
+		board->sides[move.side] ^= fromToBB;
 		board->occupied ^= fromToBB;
 		board->empty ^= fromToBB;
-		board->enPassant = squareFiles[move->to];
+		board->enPassant = squareFiles[move.to];
 
-		board->zobrist ^= pieceKeys[move->piece][move->from];
-		board->zobrist ^= pieceKeys[move->piece][move->to];
+		board->zobrist ^= pieceKeys[move.piece][move.from];
+		board->zobrist ^= pieceKeys[move.piece][move.to];
 		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 

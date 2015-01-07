@@ -46,7 +46,7 @@ int is_move(const char* moveStr);
 void sprint_move(char* buffer, Move move);
 void log_move(Move move, const char* moveString, const char* moveType);
 
-void make_move(struct Board* board, Move* move);
+void make_move(struct Board* board, Move move);
 void unmake_move(struct Board* board, Move move);
 
 #endif

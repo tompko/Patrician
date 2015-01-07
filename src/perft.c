@@ -86,7 +86,7 @@ unsigned int perft_perft(Board* board, unsigned int depth)
 
 	for (i = 0; i < numMoves; ++i)
 	{
-		make_move(board, &moves[i]);
+		make_move(board, moves[i]);
 		if ((board->sideToMove == BLACK &&
 			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
 			(board->sideToMove == WHITE &&
@@ -126,7 +126,7 @@ void perft_divide(FILE* stream, Board* board, unsigned int depth)
 		sprint_move(moveString, moves[i]);
 		printf("%s ", moveString);
 
-		make_move(board, &moves[i]);
+		make_move(board, moves[i]);
 		numDividedMoves = perft_perft(board, depth - 1);
 		unmake_move(board, moves[i]);
 
