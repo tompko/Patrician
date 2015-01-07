@@ -338,24 +338,14 @@ void make_move(Board* board, Move* move)
 	}
 	else if ((move->flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
 	{
-		int i;
 		int promoPiece = promotionPieces[move->flags & 3] + move->side;
 
 		board->pieces[move->piece] ^= fromBB;
 		board->pieces[promoPiece] ^= toBB;
+		board->pieces[move->capturedPiece] ^= toBB;
 		board->sides[move->side] ^= fromToBB;
 		board->sides[1-move->side] ^= toBB;
 		board->mailbox[move->to] = promoPiece;
-
-		for (i = 0; i < 6; ++i)
-		{
-			int pieceIndex = i*2 + (1-move->side);
-			if (board->pieces[pieceIndex] & toBB)
-			{
-				board->pieces[pieceIndex] ^= toBB;
-				move->capturedPiece = pieceIndex;
-			}
-		}
 
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
@@ -410,7 +400,6 @@ void make_move(Board* board, Move* move)
 		board->sides[1 - move->side] ^= captureSquare;
 		board->occupied ^= fromToBB | captureSquare;
 		board->empty ^= fromToBB | captureSquare;
-		move->capturedPiece = PAWN + (1 - move->side);
 		board->pieces[move->capturedPiece] ^= captureSquare;
 		board->mailbox[bit_scan_forward(captureSquare)] = NUM_PIECES;
 
@@ -420,22 +409,12 @@ void make_move(Board* board, Move* move)
 	}
 	else if (move->flags & CAPTURE_FLAG)
 	{
-		int i;
-
 		board->pieces[move->piece] ^= fromToBB;
+		board->pieces[move->capturedPiece] ^= toBB;
 		board->sides[move->side] ^= fromToBB;
 		board->sides[1-move->side] ^= toBB;
 		board->occupied ^= fromBB;
 		board->empty ^= fromBB;
-		for (i = 0; i < 6; ++i)
-		{
-			int pieceIndex = i*2 + (1-move->side);
-			if (board->pieces[pieceIndex] & toBB)
-			{
-				board->pieces[pieceIndex] ^= toBB;
-				move->capturedPiece = pieceIndex;
-			}
-		}
 
 		board->zobrist ^= pieceKeys[move->piece][move->from];
 		board->zobrist ^= pieceKeys[move->piece][move->to];

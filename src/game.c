@@ -178,11 +178,13 @@ unsigned int generate_white_pawns(Board* board, Move* moves)
 
 		while(attacks)
 		{
+			int to = bit_scan_forward(attacks);
 			moves[numMoves].piece = WHITE_PAWN;
 			moves[numMoves].side = WHITE;
 			moves[numMoves].from = pawnSquare;
-			moves[numMoves].to = bit_scan_forward(attacks);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 			attacks = clear_lsb(attacks);
 		}
@@ -193,6 +195,7 @@ unsigned int generate_white_pawns(Board* board, Move* moves)
 			moves[numMoves].from = pawnSquare;
 			moves[numMoves].to = bit_scan_forward(epAttacks);
 			moves[numMoves].flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			moves[numMoves].capturedPiece = BLACK_PAWN;
 			++numMoves;
 			epAttacks = clear_lsb(epAttacks);	
 		}
@@ -232,11 +235,14 @@ unsigned int generate_white_pawns(Board* board, Move* moves)
 		{
 			for (i = 0; i < 4; ++i)
 			{
+				int to = bit_scan_forward(attacks);
+
 				moves[numMoves].piece = WHITE_PAWN;
 				moves[numMoves].side = WHITE;
 				moves[numMoves].from = pawnSquare;
-				moves[numMoves].to = bit_scan_forward(attacks);
+				moves[numMoves].to = to;
 				moves[numMoves].flags = promotionFlags[i];
+				moves[numMoves].capturedPiece = board->mailbox[to];
 				++numMoves;
 			}
 			attacks = clear_lsb(attacks);
@@ -292,11 +298,14 @@ unsigned int generate_black_pawns(Board* board, Move* moves)
 		bitboard epAttacks = pawnAttacks[BLACK][pawnSquare] & board->enPassant & epAttackRank;
 		while(attacks)
 		{
+			int to = bit_scan_forward(attacks);
+
 			moves[numMoves].piece = BLACK_PAWN;
 			moves[numMoves].side = BLACK;
 			moves[numMoves].from = pawnSquare;
-			moves[numMoves].to = bit_scan_forward(attacks);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 			attacks = clear_lsb(attacks);
 		}
@@ -307,6 +316,7 @@ unsigned int generate_black_pawns(Board* board, Move* moves)
 			moves[numMoves].from = pawnSquare;
 			moves[numMoves].to = bit_scan_forward(epAttacks);
 			moves[numMoves].flags = CAPTURE_FLAG | SPECIAL0_FLAG;
+			moves[numMoves].capturedPiece = WHITE_PAWN;
 			++numMoves;
 			epAttacks = clear_lsb(epAttacks);
 		}
@@ -347,12 +357,15 @@ unsigned int generate_black_pawns(Board* board, Move* moves)
 		{
 			for (i = 0; i < 4; ++i)
 			{
+				int to = bit_scan_forward(attacks);
+
 				moves[numMoves].flags = 0;
 				moves[numMoves].piece = BLACK_PAWN;
 				moves[numMoves].side = BLACK;
 				moves[numMoves].from = pawnSquare;
-				moves[numMoves].to = bit_scan_forward(attacks);
+				moves[numMoves].to = to;
 				moves[numMoves].flags = promotionFlags[i];
+				moves[numMoves].capturedPiece = board->mailbox[to];
 				++numMoves;
 			}
 			attacks = clear_lsb(attacks);
@@ -388,11 +401,14 @@ unsigned int generate_knights(Board* board, Move* moves,
 		}
 		while(captures)
 		{
+			int to = bit_scan_forward(captures);
+
 			moves[numMoves].from = knightSquare;
-			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
 			moves[numMoves].piece = piece;
 			moves[numMoves].side = mySide;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 
 			captures = clear_lsb(captures);
@@ -429,11 +445,14 @@ unsigned int generate_rooks(Board* board, Move* moves,
 		}
 		while(captures)
 		{
+			int to = bit_scan_forward(captures);
+
 			moves[numMoves].from = rookSquare;
-			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
 			moves[numMoves].piece = piece;
 			moves[numMoves].side = mySide;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 
 			captures = clear_lsb(captures);
@@ -470,11 +489,14 @@ unsigned int generate_bishops(Board* board, Move* moves,
 		}
 		while(captures)
 		{
+			int to = bit_scan_forward(captures);
+
 			moves[numMoves].from = bishopSquare;
-			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
 			moves[numMoves].piece = piece;
 			moves[numMoves].side = mySide;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 
 			captures = clear_lsb(captures);
@@ -511,11 +533,14 @@ unsigned int generate_queens(Board* board, Move* moves,
 		}
 		while(captures)
 		{
+			int to = bit_scan_forward(captures);
+
 			moves[numMoves].from = queenSquare;
-			moves[numMoves].to = bit_scan_forward(captures);
+			moves[numMoves].to = to;
 			moves[numMoves].flags = CAPTURE_FLAG;
 			moves[numMoves].piece = piece;
 			moves[numMoves].side = mySide;
+			moves[numMoves].capturedPiece = board->mailbox[to];
 			++numMoves;
 
 			captures = clear_lsb(captures);
@@ -549,11 +574,14 @@ unsigned int generate_king(Board* board, Move* moves,
 	}
 	while(captures)
 	{
+		int to = bit_scan_forward(captures);
+
 		moves[numMoves].from = kingSquare;
 		moves[numMoves].flags = CAPTURE_FLAG;
 		moves[numMoves].piece = piece;
 		moves[numMoves].side = mySide;
-		moves[numMoves].to = bit_scan_forward(captures);
+		moves[numMoves].to = to;
+		moves[numMoves].capturedPiece = board->mailbox[to];
 		++numMoves;
 
 		captures = clear_lsb(captures);
@@ -586,3 +614,4 @@ int black_attacks_square(Board* board, int square)
 		kingMoves[square] & board->pieces[BLACK_KING]);
 
 }
+
