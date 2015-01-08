@@ -7,6 +7,7 @@ typedef struct Timer
 {
 	struct timespec start;
 	struct timespec stop;
+	int running;
 } Timer;
 
 void start_timer(Timer* timer);
