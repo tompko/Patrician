@@ -6,7 +6,7 @@
 
 #include "game.h"
 #include "bitscans.h"
-#include "gameTime.h"
+#include "game_time.h"
 #include "engine.h"
 #include "perft.h"
 #include "search.h"

@@ -6,7 +6,7 @@
 #include "board.h"
 #include "move.h"
 #include "game.h"
-#include "gameTime.h"
+#include "game_time.h"
 #include "hashing/transposition_table.h"
 #include "io/epd.h"
 
