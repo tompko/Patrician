@@ -32,6 +32,18 @@ void free_transposition_table(void)
 	table_size = 0;
 }
 
+void clear_transposition_table(void)
+{
+	int i;
+	for (i = 0; i < table_size; ++i)
+	{
+		transposition_table[i].depth_preferred.key = 0;
+		transposition_table[i].depth_preferred.depth = 0;
+		transposition_table[i].always_replace.key = 0;
+		transposition_table[i].always_replace.depth = 0;
+	}
+}
+
 void put_tt_entry(TTEntry* ttentry)
 {
 	unsigned long long index = ttentry->key % table_size;

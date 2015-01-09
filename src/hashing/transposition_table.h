@@ -15,6 +15,7 @@ typedef struct TTEntry
 
 void init_transposition_table(unsigned long long size_in_bytes);
 void free_transposition_table(void);
+void clear_transposition_table(void);
 
 void put_tt_entry(TTEntry* ttentry);
 TTEntry* get_tt_entry(unsigned long long key);			// Returns the deepest matching node
