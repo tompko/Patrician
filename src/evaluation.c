@@ -6,22 +6,64 @@
 
 int evaluate_piece(bitboard pieces, int* squareValues, int pieceValue);
 
-int evaluate(Board* board)
+int eval_board_eval(Board* board)
+{
+	return board->staticScore;
+}
+
+int eval_full_eval(Board* board)
 {
 	int score = 0;
-	score += evaluate_piece(board->pieces[WHITE_PAWN], whitePawnValues, PAWN_VALUE);
-	score += evaluate_piece(board->pieces[WHITE_KNIGHT], knightValues, KNIGHT_VALUE);
-	score += evaluate_piece(board->pieces[WHITE_BISHOP], bishopValues, BISHOP_VALUE);
-	score += evaluate_piece(board->pieces[WHITE_ROOK], rookValues, ROOK_VALUE);
-	score += evaluate_piece(board->pieces[WHITE_QUEEN], queenValues, QUEEN_VALUE);
-	score += evaluate_piece(board->pieces[WHITE_KING], whiteKingMiddleValues, KING_VALUE);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_PAWN],
+	                        pieceSquareValues[WHITE_PAWN],
+	                        pieceValues[WHITE_PAWN]);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_KNIGHT],
+	                        pieceSquareValues[WHITE_KNIGHT],
+	                        pieceValues[WHITE_KNIGHT]);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_BISHOP],
+	                        pieceSquareValues[WHITE_BISHOP],
+	                        pieceValues[WHITE_BISHOP]);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_ROOK],
+	                        pieceSquareValues[WHITE_ROOK],
+	                        pieceValues[WHITE_ROOK]);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_QUEEN],
+	                        pieceSquareValues[WHITE_QUEEN],
+	                        pieceValues[WHITE_QUEEN]);
+	printf("%i\n", score);
+	score += evaluate_piece(board->pieces[WHITE_KING],
+	                        pieceSquareValues[WHITE_KING],
+	                        pieceValues[WHITE_KING]);
+	printf("%i\n", score);
 
-	score -= evaluate_piece(board->pieces[BLACK_PAWN], blackPawnValues, PAWN_VALUE);
-	score -= evaluate_piece(board->pieces[BLACK_KNIGHT], knightValues, KNIGHT_VALUE);
-	score -= evaluate_piece(board->pieces[BLACK_BISHOP], bishopValues, BISHOP_VALUE);
-	score -= evaluate_piece(board->pieces[BLACK_ROOK], rookValues, ROOK_VALUE);
-	score -= evaluate_piece(board->pieces[BLACK_QUEEN], queenValues, QUEEN_VALUE);
-	score -= evaluate_piece(board->pieces[BLACK_KING], blackKingMiddleValues, KING_VALUE);
+	score -= evaluate_piece(board->pieces[BLACK_KING],
+	                        pieceSquareValues[BLACK_KING],
+	                        pieceValues[BLACK_KING]);
+	printf("%i\n", score);
+	score -= evaluate_piece(board->pieces[BLACK_QUEEN],
+	                        pieceSquareValues[BLACK_QUEEN],
+	                        pieceValues[BLACK_QUEEN]);
+	printf("%i\n", score);
+	score -= evaluate_piece(board->pieces[BLACK_ROOK],
+	                        pieceSquareValues[BLACK_ROOK],
+	                        pieceValues[BLACK_ROOK]);
+	printf("%i\n", score);
+	score -= evaluate_piece(board->pieces[BLACK_BISHOP],
+	                        pieceSquareValues[BLACK_BISHOP],
+	                        pieceValues[BLACK_BISHOP]);
+	printf("%i\n", score);
+	score -= evaluate_piece(board->pieces[BLACK_KNIGHT],
+	                        pieceSquareValues[BLACK_KNIGHT],
+	                        pieceValues[BLACK_KNIGHT]);
+	printf("%i\n", score);
+	score -= evaluate_piece(board->pieces[BLACK_PAWN],
+	                        pieceSquareValues[BLACK_PAWN],
+	                        pieceValues[BLACK_PAWN]);
+	printf("%i\n", score);
 
 	if(board->sideToMove == BLACK)
 	{

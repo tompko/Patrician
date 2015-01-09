@@ -9,6 +9,7 @@
 #include "board.h"
 #include "bitscans.h"
 #include "hashing/zobrist.h"
+#include "eval/piece_tables.h"
 #include "debug_log.h"
 
 static int promotionPieces[] = {KNIGHT, BISHOP, ROOK, QUEEN};
@@ -295,6 +296,9 @@ void make_move(Board* board, Move move)
 	board->mailbox[move.from] = NUM_PIECES;
 	board->mailbox[move.to] = move.piece;
 
+	board->staticScore -= pieceSquareValues[move.piece][move.from];
+	board->staticScore += pieceSquareValues[move.piece][move.to];
+
 	if (move.flags == 0)
 	{
 		board->pieces[move.piece] ^= fromToBB;
@@ -376,6 +380,13 @@ void make_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
 		board->zobrist ^= pieceKeys[promoPiece][move.to];
+
+		board->staticScore -= pieceValues[move.piece];
+		board->staticScore -= pieceSquareValues[move.piece][move.to];
+		board->staticScore += pieceValues[promoPiece];
+		board->staticScore += pieceSquareValues[promoPiece][move.to];
+		board->staticScore += pieceValues[move.capturedPiece];
+		board->staticScore += pieceSquareValues[move.capturedPiece][move.to];
 	}
 	else if (move.flags & PROMOTION_FLAG)
 	{
@@ -390,22 +401,31 @@ void make_move(Board* board, Move move)
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[promoPiece][move.to];
+
+		board->staticScore -= pieceValues[move.piece];
+		board->staticScore += pieceValues[promoPiece];
+		board->staticScore -= pieceSquareValues[move.piece][move.to];
+		board->staticScore += pieceSquareValues[promoPiece][move.to];
 	}
 	else if ((move.flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
 	{
-		bitboard captureSquare = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+		bitboard captureBB = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+		int captureSquare = bit_scan_forward(captureBB);
 
 		board->pieces[move.piece] ^= fromToBB;
 		board->sides[move.side] ^= fromToBB;
-		board->sides[1 - move.side] ^= captureSquare;
-		board->occupied ^= fromToBB | captureSquare;
-		board->empty ^= fromToBB | captureSquare;
-		board->pieces[move.capturedPiece] ^= captureSquare;
-		board->mailbox[bit_scan_forward(captureSquare)] = NUM_PIECES;
+		board->sides[1 - move.side] ^= captureBB;
+		board->occupied ^= fromToBB | captureBB;
+		board->empty ^= fromToBB | captureBB;
+		board->pieces[move.capturedPiece] ^= captureBB;
+		board->mailbox[captureSquare] = NUM_PIECES;
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
-		board->zobrist ^= pieceKeys[move.capturedPiece][bit_scan_forward(captureSquare)];
+		board->zobrist ^= pieceKeys[move.capturedPiece][captureSquare];
+
+		board->staticScore += pieceValues[move.capturedPiece];
+		board->staticScore += pieceSquareValues[move.capturedPiece][captureSquare];
 	}
 	else if (move.flags & CAPTURE_FLAG)
 	{
@@ -419,6 +439,9 @@ void make_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
 		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
+
+		board->staticScore += pieceValues[move.capturedPiece];
+		board->staticScore += pieceSquareValues[move.capturedPiece][move.to];
 
 		if (move.piece == WHITE_ROOK)
 		{
@@ -517,6 +540,9 @@ void make_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
 		rookFromTo = clear_lsb(rookFromTo);
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
+
+		board->staticScore -= pieceSquareValues[rookIndex][rookFrom];
+		board->staticScore += pieceSquareValues[rookIndex][rookTo];
 	}
 	else if (move.flags & SPECIAL0_FLAG)
 	{
@@ -534,6 +560,7 @@ void make_move(Board* board, Move move)
 	board->sideToMove = 1 - board->sideToMove;
 	board->zobrist ^= blackToMoveKey;
 	board->zobrist ^= castlingKeys[board->castling];
+	board->staticScore = -board->staticScore;
 
 	verify_board(board);
 }
@@ -546,6 +573,10 @@ void unmake_move(Board* board, Move move)
 
 	board->mailbox[move.from] = move.piece;
 	board->mailbox[move.to] = NUM_PIECES;
+	board->staticScore = -board->staticScore;
+
+	board->staticScore -= pieceSquareValues[move.piece][move.to];
+	board->staticScore += pieceSquareValues[move.piece][move.from];
 
 	if (move.flags == 0)
 	{
@@ -573,6 +604,13 @@ void unmake_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
 		board->zobrist ^= pieceKeys[promoPiece][move.to];
+
+		board->staticScore += pieceValues[move.piece];
+		board->staticScore += pieceSquareValues[move.piece][move.to];
+		board->staticScore -= pieceValues[promoPiece];
+		board->staticScore -= pieceSquareValues[promoPiece][move.to];
+		board->staticScore -= pieceValues[move.capturedPiece];
+		board->staticScore -= pieceSquareValues[move.capturedPiece][move.to];
 	}
 	else if (move.flags & PROMOTION_FLAG)
 	{
@@ -586,22 +624,31 @@ void unmake_move(Board* board, Move move)
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[promoPiece][move.to];
+
+		board->staticScore += pieceValues[move.piece];
+		board->staticScore -= pieceValues[promoPiece];
+		board->staticScore += pieceSquareValues[move.piece][move.to];
+		board->staticScore -= pieceSquareValues[promoPiece][move.to];
 	}
 	else if ((move.flags & (CAPTURE_FLAG | SPECIAL0_FLAG)) == (CAPTURE_FLAG | SPECIAL0_FLAG))
 	{
-		bitboard captureSquare = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+		bitboard captureBB = ((toBB & ranks[2]) << 8) | ((toBB & ranks[5]) >> 8);
+		int captureSquare = bit_scan_forward(captureBB);
 
 		board->pieces[move.piece] ^= fromToBB;
 		board->sides[move.side] ^= fromToBB;
-		board->sides[1 - move.side] ^= captureSquare;
-		board->occupied ^= fromToBB | captureSquare;
-		board->empty ^= fromToBB | captureSquare;
-		board->pieces[move.capturedPiece] ^= captureSquare;
-		board->mailbox[bit_scan_forward(captureSquare)] = move.capturedPiece;
+		board->sides[1 - move.side] ^= captureBB;
+		board->occupied ^= fromToBB | captureBB;
+		board->empty ^= fromToBB | captureBB;
+		board->pieces[move.capturedPiece] ^= captureBB;
+		board->mailbox[captureSquare] = move.capturedPiece;
 
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
-		board->zobrist ^= pieceKeys[move.capturedPiece][bit_scan_forward(captureSquare)];
+		board->zobrist ^= pieceKeys[move.capturedPiece][captureSquare];
+
+		board->staticScore -= pieceValues[move.capturedPiece];
+		board->staticScore -= pieceSquareValues[move.capturedPiece][captureSquare];
 	}
 	else if (move.flags & CAPTURE_FLAG)
 	{
@@ -616,6 +663,9 @@ void unmake_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[move.piece][move.from];
 		board->zobrist ^= pieceKeys[move.piece][move.to];
 		board->zobrist ^= pieceKeys[move.capturedPiece][move.to];
+
+		board->staticScore -= pieceValues[move.capturedPiece];
+		board->staticScore -= pieceSquareValues[move.capturedPiece][move.to];
 	}
 	else if (move.flags & SPECIAL1_FLAG)
 	{
@@ -651,6 +701,9 @@ void unmake_move(Board* board, Move move)
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
 		rookFromTo = clear_lsb(rookFromTo);
 		board->zobrist ^= pieceKeys[rookIndex][bit_scan_forward(rookFromTo)];
+
+		board->staticScore += pieceSquareValues[rookIndex][rookFrom];
+		board->staticScore -= pieceSquareValues[rookIndex][rookTo];
 	}
 	else if (move.flags & SPECIAL0_FLAG)
 	{
@@ -676,6 +729,7 @@ void unmake_move(Board* board, Move move)
 		board->zobrist ^= enPassantKeys[bit_scan_forward(board->enPassant)];
 	}
 	board->zobrist ^= blackToMoveKey;
+
 	verify_board(board);
 }
 

@@ -7,6 +7,7 @@
 #include "board.h"
 #include "move.h"
 #include "hashing/zobrist.h"
+#include "eval/piece_tables.h"
 
 typedef enum 
 {
@@ -127,6 +128,8 @@ EPDFile* epd_read_file(char* filename)
 				{
 					case 'r':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_ROOK;
+						epd->board.staticScore -= pieceSquareValues[BLACK_ROOK][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_ROOK];
 						epd->board.pieces[BLACK_ROOK] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -135,6 +138,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'n':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_KNIGHT;
+						epd->board.staticScore -= pieceSquareValues[BLACK_KNIGHT][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_KNIGHT];
 						epd->board.pieces[BLACK_KNIGHT] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -143,6 +148,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'b':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_BISHOP;
+						epd->board.staticScore -= pieceSquareValues[BLACK_BISHOP][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_BISHOP];
 						epd->board.pieces[BLACK_BISHOP] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -151,6 +158,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'q':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_QUEEN;
+						epd->board.staticScore -= pieceSquareValues[BLACK_QUEEN][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_QUEEN];
 						epd->board.pieces[BLACK_QUEEN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -159,6 +168,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'k':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_KING;
+						epd->board.staticScore -= pieceSquareValues[BLACK_KING][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_KING];
 						epd->board.pieces[BLACK_KING] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -167,6 +178,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'p':
 						epd->board.mailbox[brank*8 + bfile] = BLACK_PAWN;
+						epd->board.staticScore -= pieceSquareValues[BLACK_PAWN][brank*8 + bfile];
+						epd->board.staticScore -= pieceValues[BLACK_PAWN];
 						epd->board.pieces[BLACK_PAWN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[BLACK] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -175,6 +188,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'R':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_ROOK;
+						epd->board.staticScore += pieceSquareValues[WHITE_ROOK][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_ROOK];
 						epd->board.pieces[WHITE_ROOK] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -183,6 +198,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'N':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_KNIGHT;
+						epd->board.staticScore += pieceSquareValues[WHITE_KNIGHT][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_KNIGHT];
 						epd->board.pieces[WHITE_KNIGHT] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -191,6 +208,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'B':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_BISHOP;
+						epd->board.staticScore += pieceSquareValues[WHITE_BISHOP][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_BISHOP];
 						epd->board.pieces[WHITE_BISHOP] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -199,6 +218,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'Q':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_QUEEN;
+						epd->board.staticScore += pieceSquareValues[WHITE_QUEEN][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_QUEEN];
 						epd->board.pieces[WHITE_QUEEN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -207,6 +228,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'K':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_KING;
+						epd->board.staticScore += pieceSquareValues[WHITE_KING][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_KING];
 						epd->board.pieces[WHITE_KING] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -215,6 +238,8 @@ EPDFile* epd_read_file(char* filename)
 						break;
 					case 'P':
 						epd->board.mailbox[brank*8 + bfile] = WHITE_PAWN;
+						epd->board.staticScore += pieceSquareValues[WHITE_PAWN][brank*8 + bfile];
+						epd->board.staticScore += pieceValues[WHITE_PAWN];
 						epd->board.pieces[WHITE_PAWN] |= 1ULL << (brank*8 + bfile);
 						epd->board.sides[WHITE] |= 1ULL << (brank*8 + bfile);
 						epd->board.occupied |= 1ULL << (brank*8 + bfile);
@@ -258,6 +283,8 @@ EPDFile* epd_read_file(char* filename)
 				else if (*string == 'b')
 				{
 					epd->board.sideToMove = BLACK;
+					// We calculated the score assuming wtm so negate it
+					epd->board.staticScore = -epd->board.staticScore;
 				}
 				else
 				{

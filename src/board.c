@@ -6,7 +6,9 @@
 #include <assert.h>
 
 #include "hashing/zobrist.h"
+#include "eval/piece_tables.h"
 #include "bitscans.h"
+#include "evaluation.h"
 #include "debug_log.h"
 
 char * strSquare[] = {
@@ -127,6 +129,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'r':
 			{
 				board->mailbox[rank*8 + file] = BLACK_ROOK;
+				board->staticScore -= pieceSquareValues[BLACK_ROOK][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_ROOK];
 				board->pieces[BLACK_ROOK] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -134,6 +138,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'n':
 			{
 				board->mailbox[rank*8 + file] = BLACK_KNIGHT;
+				board->staticScore -= pieceSquareValues[BLACK_KNIGHT][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_KNIGHT];
 				board->pieces[BLACK_KNIGHT] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -141,6 +147,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'b':
 			{
 				board->mailbox[rank*8 + file] = BLACK_BISHOP;
+				board->staticScore -= pieceSquareValues[BLACK_BISHOP][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_BISHOP];
 				board->pieces[BLACK_BISHOP] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -148,6 +156,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'q':
 			{
 				board->mailbox[rank*8 + file] = BLACK_QUEEN;
+				board->staticScore -= pieceSquareValues[BLACK_QUEEN][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_QUEEN];
 				board->pieces[BLACK_QUEEN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -155,6 +165,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'k':
 			{
 				board->mailbox[rank*8 + file] = BLACK_KING;
+				board->staticScore -= pieceSquareValues[BLACK_KING][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_KING];
 				board->pieces[BLACK_KING] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -162,6 +174,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'p':
 			{
 				board->mailbox[rank*8 + file] = BLACK_PAWN;
+				board->staticScore -= pieceSquareValues[BLACK_PAWN][rank*8 + file];
+				board->staticScore -= pieceValues[BLACK_PAWN];
 				board->pieces[BLACK_PAWN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -169,6 +183,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'R':
 			{
 				board->mailbox[rank*8 + file] = WHITE_ROOK;
+				board->staticScore += pieceSquareValues[WHITE_ROOK][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_ROOK];
 				board->pieces[WHITE_ROOK] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -176,6 +192,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'N':
 			{
 				board->mailbox[rank*8 + file] = WHITE_KNIGHT;
+				board->staticScore += pieceSquareValues[WHITE_KNIGHT][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_KNIGHT];
 				board->pieces[WHITE_KNIGHT] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -183,6 +201,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'B':
 			{
 				board->mailbox[rank*8 + file] = WHITE_BISHOP;
+				board->staticScore += pieceSquareValues[WHITE_BISHOP][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_BISHOP];
 				board->pieces[WHITE_BISHOP] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -190,6 +210,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'Q':
 			{
 				board->mailbox[rank*8 + file] = WHITE_QUEEN;
+				board->staticScore += pieceSquareValues[WHITE_QUEEN][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_QUEEN];
 				board->pieces[WHITE_QUEEN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -197,6 +219,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'K':
 			{
 				board->mailbox[rank*8 + file] = WHITE_KING;
+				board->staticScore += pieceSquareValues[WHITE_KING][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_KING];
 				board->pieces[WHITE_KING] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -204,6 +228,8 @@ int set_from_FEN(Board* board, const char* FEN)
 			case 'P':
 			{
 				board->mailbox[rank*8 + file] = WHITE_PAWN;
+				board->staticScore += pieceSquareValues[WHITE_PAWN][rank*8 + file];
+				board->staticScore += pieceValues[WHITE_PAWN];
 				board->pieces[WHITE_PAWN] |= 1ULL << (rank*8 + file);
 				++file;
 				break;
@@ -490,6 +516,7 @@ void verify_board(Board* board)
 		assert(pieces[i] == board->pieces[i]);
 	}
 
+	assert(board->staticScore == eval_full_eval(board));
 #endif
 }
 

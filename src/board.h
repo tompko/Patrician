@@ -84,6 +84,7 @@ typedef struct Board
 	unsigned int maxHistory;
 	unsigned int move;				// The number of full moves
 	unsigned char sideToMove;		// Which side has the next move
+	int staticScore;				// Material based score, updated during make/unmake move
 } Board;
 
 int set_from_FEN(Board* board, const char* FEN);
@@ -98,6 +99,7 @@ void pop_state(Board* board);
 // - the composite bitboards are set correctly
 // - the zobrist key matches the state of the board
 // - the mailbox and bitboard representations agree
+// - the static score is correct
 // only active in debug builds
 void verify_board(Board* board);
 

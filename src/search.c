@@ -112,7 +112,7 @@ int alpha_beta (Board * board, int alpha, int beta, int depth)
 
 	if (depth == 0)
 	{
-		return evaluate (board);
+		return eval_board_eval(board);
 	}
 
 	unsigned int numMoves = generate_moves (board, moves);
