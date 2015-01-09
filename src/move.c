@@ -13,6 +13,7 @@
 #include "debug_log.h"
 
 static int promotionPieces[] = {KNIGHT, BISHOP, ROOK, QUEEN};
+static char promotionPiecesStr[] = {'N', 'B', 'R', 'Q'};
 
 Move make_move_from_str(Board* board, const char* moveStr)
 {
@@ -237,7 +238,15 @@ int is_move(const char* moveStr)
 
 void sprint_move(char* buffer, Move move)
 {
-	sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
+	if (move.flags & PROMOTION_FLAG)
+	{
+		char promoPiece = promotionPiecesStr[move.flags & 3];
+		sprintf(buffer, "%s%s%c", strSquare[move.from], strSquare[move.to], promoPiece);
+	}
+	else
+	{
+		sprintf(buffer, "%s%s", strSquare[move.from], strSquare[move.to]);
+	}
 }
 
 void log_move(Move move, const char* moveString, const char* moveType)
