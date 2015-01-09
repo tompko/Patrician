@@ -2,7 +2,7 @@
 
 #include "bitscans.h"
 #include "board.h"
-#include "eval/pieceTables.h"
+#include "eval/piece_tables.h"
 
 int evaluate_piece(bitboard pieces, int* squareValues, int pieceValue);
 
