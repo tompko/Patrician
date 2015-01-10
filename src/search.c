@@ -36,6 +36,7 @@ Move root_search(Board * board)
 	Timer searchTimer;
 	char moveStr[16];
 
+	nodes = 0;
 	start_timer(&searchTimer);
 
 	unsigned int numMoves = generate_moves(board, moves);
@@ -44,7 +45,6 @@ Move root_search(Board * board)
 	{
 		int score = -INFINITY;
 		bestScore = -INFINITY;
-		nodes = 0;
 
 		for (i = 0; i < numMoves; ++i)
 		{
