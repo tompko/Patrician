@@ -365,7 +365,7 @@ int xboardInput()
 	else
 	{
 		LOG("xboard_unrecognised", input);
-		exit(0);
+		printf("Error (unknown command): %s\n", input);
 	}
 
 	return 0;
