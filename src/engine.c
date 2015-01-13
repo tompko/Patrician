@@ -215,7 +215,7 @@ void engine_thread(void)
 			}
 			case ENGINE_THINKING:
 			{
-				Move move = root_search(&s_CurrentBoard);
+				Move move = root_search(&s_CurrentBoard, 10.0);
 				char moveBuffer[16];
 
 				if (s_EngineState != ENGINE_THINKING)

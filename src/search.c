@@ -15,7 +15,7 @@
 
 static int nodes;
 
-int alpha_beta(Board * board, int alpha, int beta, int depth);
+int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch);
 
 static inline int force_exact(int x)
 {
@@ -27,7 +27,7 @@ static inline int force_lb(int x)
 	return force_exact(x) + 1;
 }
 
-Move root_search(Board * board)
+Move root_search(Board * board, double timeToSearch)
 {
 	int i, depth;
 	Move moves[256];
@@ -37,12 +37,14 @@ Move root_search(Board * board)
 	char moveStr[16];
 
 	nodes = 0;
+	depth = 0;
 	start_timer(&searchTimer);
 
 	unsigned int numMoves = generate_moves(board, moves);
 
-	for (depth = 1; depth <= 5; ++depth)
+	while (get_elapsed_time(&searchTimer) < timeToSearch)
 	{
+		++depth;
 		int score = -INFINITY;
 		bestScore = -INFINITY;
 
@@ -54,12 +56,19 @@ Move root_search(Board * board)
 				(board->sideToMove == WHITE &&
 				!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
 			{
-				score = -alpha_beta(board, bestScore, INFINITY, depth);
+				score = -alpha_beta(board, bestScore, INFINITY, depth, &searchTimer, timeToSearch);
+
+				if (get_elapsed_time(&searchTimer) > timeToSearch)
+				{
+					// We probably aborted the search for this score, so it's not valid
+					// ignore it.
+					unmake_move(board, moves[i]);
+					break;
+				}
 
 				if (score > bestScore)
 				{
-					double elapsed = get_elapsed_time(&searchTimer);
-					int centi_seconds = (int)(elapsed * 100);
+					int centi_seconds = (int)(get_elapsed_time(&searchTimer) * 100);
 					bestScore = score;
 					bestMove = moves[i];
 					sprint_move(moveStr, bestMove);
@@ -96,7 +105,7 @@ void search_test_search(EPDFile* epdFile)
 		{
 			// bm - Best Move
 			// Pass if we found the same move
-			Move engineMove = root_search(&epd->board);
+			Move engineMove = root_search(&epd->board, 60.0);
 			Move bestMove = epd_move_operation(epd, "bm");
 			char engineMoveStr[16], bestMoveStr[16];
 
@@ -117,7 +126,7 @@ void search_test_search(EPDFile* epdFile)
 		{
 			// am - Avoid move
 			// Pass if we found a different move
-			Move engineMove = root_search(&epd->board);
+			Move engineMove = root_search(&epd->board, 60.0);
 			Move avoidMove = epd_move_operation(epd, "am");
 			char engineMoveStr[16], avoidMoveStr[16];
 
@@ -142,7 +151,7 @@ void search_test_search(EPDFile* epdFile)
 	       (float)hits * 100 / (float)epdFile->numEPD);
 }
 
-int alpha_beta(Board * board, int alpha, int beta, int depth)
+int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch)
 {
 	int i;
 	Move moves[256];
@@ -178,30 +187,41 @@ int alpha_beta(Board * board, int alpha, int beta, int depth)
 
 	for (i = 0; i < numMoves; ++i)
 	{
-		make_move(board, moves[i]);
-		int score = -alpha_beta(board, -beta, -alpha, depth - 1);
-		unmake_move(board, moves[i]);
+		if ((board->sideToMove == BLACK &&
+			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+			(board->sideToMove == WHITE &&
+			!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
+		{
+			make_move(board, moves[i]);
+			int score = -alpha_beta(board, -beta, -alpha, depth - 1, searchTimer, timeToSearch);
+			unmake_move(board, moves[i]);
 
-		if (score >= cut)
-		{
-			TTEntry new_entry;
-			new_entry.key = board->zobrist;
-			new_entry.best_move = moves[i];
-			new_entry.score = force_lb(score);
-			new_entry.depth = depth;
-			new_entry.age = board->move;
+			if (get_elapsed_time(searchTimer) > timeToSearch)
+			{
+				return 0;
+			}
 
-			put_tt_entry(&new_entry);
-			return force_lb(beta); //  fail hard beta-cutoff
-		}
-		if (score > alpha)
-		{
-			alpha = score;	// alpha acts like max in MiniMax
-		}
-		if (score > bestScore)
-		{
-			bestScore = score;
-			bestMove = moves[i];
+			if (score >= cut)
+			{
+				TTEntry new_entry;
+				new_entry.key = board->zobrist;
+				new_entry.best_move = moves[i];
+				new_entry.score = force_lb(score);
+				new_entry.depth = depth;
+				new_entry.age = board->move;
+
+				put_tt_entry(&new_entry);
+				return force_lb(beta); //  fail hard beta-cutoff
+			}
+			if (score > alpha)
+			{
+				alpha = score;	// alpha acts like max in MiniMax
+			}
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestMove = moves[i];
+			}
 		}
 	}
 
