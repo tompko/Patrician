@@ -16,6 +16,7 @@
 static int nodes;
 
 int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch);
+int get_move_score(Board* board, Move move);
 
 static inline int force_exact(int x)
 {
@@ -114,8 +115,12 @@ void search_test_search(EPDFile* epdFile)
 
 			int sameMove = ((engineMove.from == bestMove.from) &&
 			                (engineMove.to == bestMove.to));
-			printf("Engine Move: %s\nBest Move: %s\n%s\n", engineMoveStr, bestMoveStr,
-			sameMove ? "PASS" : "FAIL");
+			printf("Engine Move: %s (%i)\nBest Move: %s (%i)\n%s\n",
+			       engineMoveStr,
+			       get_move_score(&epd->board, engineMove),
+			       bestMoveStr,
+			       get_move_score(&epd->board, bestMove),
+			       sameMove ? "PASS" : "FAIL");
 
 			if (sameMove)
 			{
@@ -135,8 +140,12 @@ void search_test_search(EPDFile* epdFile)
 
 			int sameMove = ((engineMove.from == avoidMove.from) &&
 			                (engineMove.to == avoidMove.to));
-			printf("Engine Move: %s\nAvoid Move: %s\n%s\n", engineMoveStr, avoidMoveStr,
-			sameMove ? "FAIL" : "PASS");
+			printf("Engine Move: %s (%i)\nAvoid Move: %s (%i)\n%s\n",
+			       engineMoveStr,
+			       get_move_score(&epd->board, engineMove),
+			       avoidMoveStr,
+			       get_move_score(&epd->board, avoidMove),
+			       sameMove ? "FAIL" : "PASS");
 
 			if (!sameMove)
 			{
@@ -235,5 +244,16 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 	put_tt_entry(&new_entry);
 
 	return alpha;
+}
+
+int get_move_score(Board* board, Move move)
+{
+	TTEntry* ttentry;
+
+	make_move(board, move);
+	ttentry = get_tt_entry(board->zobrist);
+	unmake_move(board, move);
+
+	return ttentry->score;
 }
 
