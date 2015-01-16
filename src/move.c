@@ -295,6 +295,11 @@ void make_move(Board* board, Move move)
 	bitboard toBB = 1ull << move.to;
 	bitboard fromToBB = fromBB | toBB;
 
+	assert(board->mailbox[move.from] == move.piece);
+	assert((board->mailbox[move.to] == NUM_PIECES) ||
+	       ((board->mailbox[move.to] == move.capturedPiece) &&
+	        ((move.flags & CAPTURE_FLAG) == CAPTURE_FLAG)));
+
 	push_state(board);
 	board->zobrist ^= castlingKeys[board->castling];
 	if (board->enPassant)
@@ -580,6 +585,11 @@ void unmake_move(Board* board, Move move)
 	bitboard toBB = 1ull << move.to;
 	bitboard fromToBB = fromBB | toBB;
 
+	assert(board->mailbox[move.from] == NUM_PIECES);
+	assert((board->mailbox[move.to] == move.piece) ||
+	       ((board->mailbox[move.to] == promotionPieces[move.flags & 3] + move.side) &&
+	       ((move.flags & PROMOTION_FLAG) == PROMOTION_FLAG)));
+
 	board->mailbox[move.from] = move.piece;
 	board->mailbox[move.to] = NUM_PIECES;
 	board->staticScore = -board->staticScore;
@@ -600,6 +610,7 @@ void unmake_move(Board* board, Move move)
 	else if ((move.flags & (PROMOTION_FLAG | CAPTURE_FLAG)) == (PROMOTION_FLAG | CAPTURE_FLAG))
 	{
 		int promoPiece = promotionPieces[move.flags & 3] + move.side;
+
 		board->pieces[move.piece] ^= fromBB;
 		board->pieces[promoPiece] ^= toBB;
 		board->sides[move.side] ^= fromToBB;

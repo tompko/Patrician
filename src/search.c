@@ -13,10 +13,17 @@
 
 #define INFINITY (10000000) // highest possible score, used as initial alpha, beta values
 
+typedef struct SearchMove
+{
+	Move move;
+	int score;
+} SearchMove;
+
 static int nodes;
 
 int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch);
 int get_move_score(Board* board, Move move);
+int compare_search_moves(const void* a, const void* b);
 
 static inline int force_exact(int x)
 {
@@ -31,7 +38,9 @@ static inline int force_lb(int x)
 Move root_search(Board * board, double timeToSearch)
 {
 	int i, depth;
+	unsigned int numMoves = 0, legalMoves = 0;
 	Move moves[256];
+	SearchMove smoves[256];
 	Move bestMove;
 	int bestScore = -INFINITY;
 	Timer searchTimer;
@@ -41,44 +50,57 @@ Move root_search(Board * board, double timeToSearch)
 	depth = 0;
 	start_timer(&searchTimer);
 
-	unsigned int numMoves = generate_moves(board, moves);
+	numMoves = generate_moves(board, moves);
+
+	for (i = 0; i < numMoves; ++i)
+	{
+		make_move(board, moves[i]);
+
+		if ((board->sideToMove == BLACK &&
+			!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
+			(board->sideToMove == WHITE &&
+			!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
+		{
+			smoves[legalMoves].move = moves[i];
+			smoves[legalMoves].score = -alpha_beta(board, -INFINITY, INFINITY, 0, &searchTimer, timeToSearch);
+			++legalMoves;
+		}
+
+		unmake_move(board, moves[i]);
+	}
+
+	qsort(smoves, legalMoves, sizeof(SearchMove), compare_search_moves);
 
 	while (get_elapsed_time(&searchTimer) < timeToSearch)
 	{
 		++depth;
-		int score = -INFINITY;
 		bestScore = -INFINITY;
 
-		for (i = 0; i < numMoves; ++i)
+		for (i = 0; i < legalMoves; ++i)
 		{
-			make_move(board, moves[i]);
-			if ((board->sideToMove == BLACK &&
-				!black_attacks_square(board, bit_scan_forward(board->pieces[WHITE_KING]))) ||
-				(board->sideToMove == WHITE &&
-				!white_attacks_square(board, bit_scan_forward(board->pieces[BLACK_KING]))))
+			make_move(board, smoves[i].move);
+			smoves[i].score = -alpha_beta(board, bestScore, INFINITY, depth, &searchTimer, timeToSearch);
+
+			if (get_elapsed_time(&searchTimer) > timeToSearch)
 			{
-				score = -alpha_beta(board, bestScore, INFINITY, depth, &searchTimer, timeToSearch);
-
-				if (get_elapsed_time(&searchTimer) > timeToSearch)
-				{
-					// We probably aborted the search for this score, so it's not valid
-					// ignore it.
-					unmake_move(board, moves[i]);
-					break;
-				}
-
-				if (score > bestScore)
-				{
-					int centi_seconds = (int)(get_elapsed_time(&searchTimer) * 100);
-					bestScore = score;
-					bestMove = moves[i];
-					sprint_move(moveStr, bestMove);
-					// ply score time(centiseconds) nodes (selective depth) (speed) (tbhits) \t pv
-					printf("%i %i %i %i\t%s\n", depth, score / 4, centi_seconds, nodes, moveStr);
-				}
+				// We probably aborted the search for this score, so it's not valid
+				// ignore it.
+				unmake_move(board, smoves[i].move);
+				break;
 			}
-			unmake_move(board, moves[i]);
+
+			if (smoves[i].score > bestScore)
+			{
+				int centi_seconds = (int)(get_elapsed_time(&searchTimer) * 100);
+				bestScore = smoves[i].score;
+				bestMove = smoves[i].move;
+				sprint_move(moveStr, bestMove);
+				// ply score time(centiseconds) nodes (selective depth) (speed) (tbhits) \t pv
+				printf("%i %i %i %i\t%s\n", depth, smoves[i].score / 4, centi_seconds, nodes, moveStr);
+			}
+			unmake_move(board, smoves[i].move);
 		}
+		qsort(smoves, legalMoves, sizeof(SearchMove), compare_search_moves);
 	}
 
 	return bestMove;
@@ -255,5 +277,21 @@ int get_move_score(Board* board, Move move)
 	unmake_move(board, move);
 
 	return ttentry->score;
+}
+
+int compare_search_moves(const void* a, const void* b)
+{
+	const SearchMove* sma = (const SearchMove*)a;
+	const SearchMove* smb = (const SearchMove*)b;
+
+	return (sma->score > smb->score) - (sma->score < smb->score);
+	// The above is taken from
+	// http://stackoverflow.com/questions/10996418/efficient-integer-compare-function
+	// and is functionally identical to the below, but optimizes better
+	// if (sma->score > smb->score)
+	// 	return -1;
+	// else if (sma->score < smb->score)
+	// 	return 1;
+	// return 0;
 }
 
