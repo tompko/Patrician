@@ -485,6 +485,7 @@ void verify_board(Board* board)
 #ifndef NDEBUG
 
 	int i;
+	int valid = 1;
 	bitboard occupied = 0;
 	bitboard whitePieces = 0, blackPieces = 0;
 	bitboard pieces[NUM_PIECES + 1] = {0};
@@ -493,18 +494,47 @@ void verify_board(Board* board)
 	{
 		occupied |= board->pieces[i];
 	}
-	assert(occupied == board->occupied);
-	assert(~occupied == board->empty);
+	if (occupied != board->occupied)
+	{
+		fprintf(stderr, "Occupied board: %llu, calculated :%llu\n", board->occupied, occupied);
+		valid = 0;
+	}
+	if (~occupied != board->empty)
+	{
+		fprintf(stderr, "Empty board: %llu, calculated :%llu\n", board->empty, ~occupied);
+		valid = 0;
+	}
 
 	for (i = 0; i < NUM_PIECES; i += 2)
 	{
 		whitePieces |= board->pieces[i + WHITE];
 		blackPieces |= board->pieces[i + BLACK];
 	}
-	assert(whitePieces == board->sides[WHITE]);
-	assert(blackPieces == board->sides[BLACK]);
+	if (whitePieces != board->sides[WHITE])
+	{
+		fprintf(stderr, "White board: %llu, calculated :%llu\n", board->sides[WHITE], whitePieces);
+		valid = 0;
+	}
+	if (blackPieces != board->sides[BLACK])
+	{
+		fprintf(stderr, "Black board: %llu, calculated :%llu\n", board->sides[BLACK], blackPieces);
+		valid = 0;
+	}
+	if ((board->sides[WHITE] & board->sides[BLACK]) != 0)
+	{
+		fprintf(stderr,
+		        "Overlap of sides, White: %llu, Black: %llu, Overlap: %llu\n",
+		        board->sides[WHITE],
+		        board->sides[BLACK],
+		        board->sides[WHITE] & board->sides[BLACK]);
+		valid = 0;
+	}
 
-	assert(board->zobrist == calculate_zobrist(board));
+	if (board->zobrist != calculate_zobrist(board))
+	{
+		fprintf(stderr, "Zobrist board: %llu, calculated :%llu\n", board->zobrist, calculate_zobrist(board));
+		valid = 0;
+	}
 
 	for (i = 0; i < 64; ++i)
 	{
@@ -513,10 +543,25 @@ void verify_board(Board* board)
 
 	for (i = 0; i < NUM_PIECES; ++i)
 	{
-		assert(pieces[i] == board->pieces[i]);
+		if (pieces[i] != board->pieces[i])
+		{
+			fprintf(stderr, "Piece %i board: %llu, calculated: %llu\n", i, board->pieces[i], pieces[i]);
+			valid = 0;
+		}
 	}
 
+	if (pieces[NUM_PIECES] != board->empty)
+	{
+		fprintf(stderr, "EmptyMail board: %llu, calculated: %llu\n", board->empty, pieces[NUM_PIECES]);
+		valid = 0;
+	}
+
+	assert(valid);
+
 	assert(board->staticScore == eval_full_eval(board));
+
+	assert(population(board->pieces[WHITE_KING]) == 1);
+	assert(population(board->pieces[BLACK_KING]) == 1);
 #endif
 }
 
