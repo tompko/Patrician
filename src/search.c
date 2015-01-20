@@ -41,7 +41,7 @@ Move root_search(Board * board, double timeToSearch)
 	unsigned int numMoves = 0, legalMoves = 0;
 	Move moves[256];
 	SearchMove smoves[256];
-	Move bestMove;
+	Move bestMove = 0;
 	int bestScore = -INFINITY;
 	Timer searchTimer;
 	char moveStr[16];
@@ -135,8 +135,7 @@ void search_test_search(EPDFile* epdFile)
 			sprint_move(engineMoveStr, engineMove);
 			sprint_move(bestMoveStr, bestMove);
 
-			int sameMove = ((engineMove.from == bestMove.from) &&
-			                (engineMove.to == bestMove.to));
+			int sameMove = engineMove == bestMove;
 			printf("Engine Move: %s (%i)\nBest Move: %s (%i)\n%s\n",
 			       engineMoveStr,
 			       get_move_score(&epd->board, engineMove),
@@ -160,8 +159,7 @@ void search_test_search(EPDFile* epdFile)
 			sprint_move(engineMoveStr, engineMove);
 			sprint_move(avoidMoveStr, avoidMove);
 
-			int sameMove = ((engineMove.from == avoidMove.from) &&
-			                (engineMove.to == avoidMove.to));
+			int sameMove = engineMove == avoidMove;
 			printf("Engine Move: %s (%i)\nAvoid Move: %s (%i)\n%s\n",
 			       engineMoveStr,
 			       get_move_score(&epd->board, engineMove),
@@ -186,7 +184,7 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 {
 	int i;
 	Move moves[256];
-	Move bestMove;
+	Move bestMove = 0;
 	int bestScore = -INFINITY;
 	int cut = force_exact(beta);
 

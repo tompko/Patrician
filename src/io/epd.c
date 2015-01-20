@@ -590,7 +590,6 @@ const char* epd_string_operation(EPD* epd, char* opcode)
 Move epd_move_operation(EPD* epd, char* opcode)
 {
 	int i;
-	Move move;
 
 	// TODO - cope with space separated lists of moves
 	for (i = 0; i < epd->numOperations; ++i)
@@ -601,6 +600,6 @@ Move epd_move_operation(EPD* epd, char* opcode)
 		}
 	}
 
-	return move;
+	return 0;
 }
 
