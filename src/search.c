@@ -212,6 +212,18 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 			return force_lb(ttentry->score);
 		}
 	}
+	else if (ttentry && ttentry->best_move)
+	{
+		// Try the hash move for a fast beta-cutoff
+		make_move(board, ttentry->best_move);
+		int score = -alpha_beta(board, -beta, -alpha, depth - 1, searchTimer, timeToSearch);
+		unmake_move(board, ttentry->best_move);
+
+		if (score >= cut)
+		{
+			return force_lb(beta);
+		}
+	}
 
 	unsigned int numMoves = generate_moves(board, moves);
 
