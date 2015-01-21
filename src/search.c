@@ -24,6 +24,7 @@ static int nodes;
 int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch);
 int get_move_score(Board* board, Move move);
 int compare_search_moves(const void* a, const void* b);
+int compare_moves(const void* a, const void* b);
 
 static inline int force_exact(int x)
 {
@@ -214,6 +215,8 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 
 	unsigned int numMoves = generate_moves(board, moves);
 
+	qsort(moves, numMoves, sizeof(Move), compare_moves);
+
 	for (i = 0; i < numMoves; ++i)
 	{
 		if ((board->sideToMove == BLACK &&
@@ -282,7 +285,7 @@ int compare_search_moves(const void* a, const void* b)
 	const SearchMove* sma = (const SearchMove*)a;
 	const SearchMove* smb = (const SearchMove*)b;
 
-	return (sma->score > smb->score) - (sma->score < smb->score);
+	return (sma->score < smb->score) - (sma->score > smb->score);
 	// The above is taken from
 	// http://stackoverflow.com/questions/10996418/efficient-integer-compare-function
 	// and is functionally identical to the below, but optimizes better
@@ -291,5 +294,13 @@ int compare_search_moves(const void* a, const void* b)
 	// else if (sma->score < smb->score)
 	// 	return 1;
 	// return 0;
+}
+
+int compare_moves(const void* a, const void* b)
+{
+	const Move* ma = (const Move*)a;
+	const Move* mb = (const Move*)b;
+
+	return (*ma < *mb) - (*ma > *mb);
 }
 
