@@ -95,8 +95,8 @@ Move make_move_from_str(Board* board, const char* moveStr)
 			special_1 = 1;
 		}
 	}
-	return move_pack_move(to,
-                    from,
+	return move_pack_move(from,
+                    to,
                     piece,
                     capturedPiece,
                     capture,
@@ -247,7 +247,7 @@ void sprint_move(char* buffer, Move move)
 	unsigned int special_0;
 	unsigned int special_1;
 
-	move_unpack_move(move, &to, &from, &piece, &capturedPiece, &capture, &promotion, &special_0, &special_1);
+	move_unpack_move(move, &from, &to, &piece, &capturedPiece, &capture, &promotion, &special_0, &special_1);
 
 	if (promotion)
 	{
@@ -273,7 +273,7 @@ void log_move(Move move, const char* moveString, const char* moveType)
 	char* moveBuffer = (char*)malloc(sizeof(char)*1024);
 	char* flagBuffer = (char*)malloc(sizeof(char)*256);
 
-	move_unpack_move(move, &to, &from, &piece, &capturedPiece, &capture, &promotion, &special_0, &special_1);
+	move_unpack_move(move, &from, &to, &piece, &capturedPiece, &capture, &promotion, &special_0, &special_1);
 	strcpy(flagBuffer, "[");
 	if (promotion)
 	{
