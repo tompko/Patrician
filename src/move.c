@@ -183,8 +183,9 @@ Move make_move_from_san(struct Board* board, const char* moveStr)
 			continue;
 		}
 
-		if (promotion &&
-		    ((move_get_promotion(moves[i]) != promotion) ||
+		if (move_get_promotion(moves[i]) &&
+		    (!promotion ||
+		     (move_get_promotion(moves[i]) != promotion) ||
 		     (move_get_special_0(moves[i]) != special_0) ||
 		     (move_get_special_1(moves[i]) != special_1)))
 		{
