@@ -24,6 +24,7 @@ static int nodes;
 int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer, double timeToSearch);
 int get_move_score(Board* board, Move move);
 int compare_search_moves(const void* a, const void* b);
+int compare_moves(const void* a, const void* b);
 
 static inline int force_exact(int x)
 {
@@ -41,7 +42,7 @@ Move root_search(Board * board, double timeToSearch)
 	unsigned int numMoves = 0, legalMoves = 0;
 	Move moves[256];
 	SearchMove smoves[256];
-	Move bestMove;
+	Move bestMove = 0;
 	int bestScore = -INFINITY;
 	Timer searchTimer;
 	char moveStr[16];
@@ -135,8 +136,7 @@ void search_test_search(EPDFile* epdFile)
 			sprint_move(engineMoveStr, engineMove);
 			sprint_move(bestMoveStr, bestMove);
 
-			int sameMove = ((engineMove.from == bestMove.from) &&
-			                (engineMove.to == bestMove.to));
+			int sameMove = engineMove == bestMove;
 			printf("Engine Move: %s (%i)\nBest Move: %s (%i)\n%s\n",
 			       engineMoveStr,
 			       get_move_score(&epd->board, engineMove),
@@ -160,8 +160,7 @@ void search_test_search(EPDFile* epdFile)
 			sprint_move(engineMoveStr, engineMove);
 			sprint_move(avoidMoveStr, avoidMove);
 
-			int sameMove = ((engineMove.from == avoidMove.from) &&
-			                (engineMove.to == avoidMove.to));
+			int sameMove = engineMove == avoidMove;
 			printf("Engine Move: %s (%i)\nAvoid Move: %s (%i)\n%s\n",
 			       engineMoveStr,
 			       get_move_score(&epd->board, engineMove),
@@ -186,7 +185,7 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 {
 	int i;
 	Move moves[256];
-	Move bestMove;
+	Move bestMove = 0;
 	int bestScore = -INFINITY;
 	int cut = force_exact(beta);
 
@@ -213,8 +212,22 @@ int alpha_beta(Board * board, int alpha, int beta, int depth, Timer* searchTimer
 			return force_lb(ttentry->score);
 		}
 	}
+	else if (ttentry && ttentry->best_move)
+	{
+		// Try the hash move for a fast beta-cutoff
+		make_move(board, ttentry->best_move);
+		int score = -alpha_beta(board, -beta, -alpha, depth - 1, searchTimer, timeToSearch);
+		unmake_move(board, ttentry->best_move);
+
+		if (score >= cut)
+		{
+			return force_lb(beta);
+		}
+	}
 
 	unsigned int numMoves = generate_moves(board, moves);
+
+	qsort(moves, numMoves, sizeof(Move), compare_moves);
 
 	for (i = 0; i < numMoves; ++i)
 	{
@@ -284,7 +297,7 @@ int compare_search_moves(const void* a, const void* b)
 	const SearchMove* sma = (const SearchMove*)a;
 	const SearchMove* smb = (const SearchMove*)b;
 
-	return (sma->score > smb->score) - (sma->score < smb->score);
+	return (sma->score < smb->score) - (sma->score > smb->score);
 	// The above is taken from
 	// http://stackoverflow.com/questions/10996418/efficient-integer-compare-function
 	// and is functionally identical to the below, but optimizes better
@@ -293,5 +306,13 @@ int compare_search_moves(const void* a, const void* b)
 	// else if (sma->score < smb->score)
 	// 	return 1;
 	// return 0;
+}
+
+int compare_moves(const void* a, const void* b)
+{
+	const Move* ma = (const Move*)a;
+	const Move* mb = (const Move*)b;
+
+	return (*ma < *mb) - (*ma > *mb);
 }
 
