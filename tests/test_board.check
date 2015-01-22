@@ -1,0 +1,65 @@
+#include "board.h"
+
+#suite BoardSuite
+
+#tcase set_from_FEN
+
+#test start_position
+	Board board;
+	bitboard expectedPieces[NUM_PIECES];
+	int i;
+
+	expectedPieces[WHITE_PAWN] = (1ull << A2) | (1ull << B2) | (1ull << C2) | (1ull << D2) |
+	                             (1ull << E2) | (1ull << F2) | (1ull << G2) | (1ull << H2);
+	expectedPieces[WHITE_ROOK] = (1ull << A1) | (1ull << H1);
+	expectedPieces[WHITE_KNIGHT] = (1ull << B1) | (1ull << G1);
+	expectedPieces[WHITE_BISHOP] = (1ull << C1) | (1ull << F1);
+	expectedPieces[WHITE_QUEEN] = 1ull << D1;
+	expectedPieces[WHITE_KING] = 1ull << E1;
+
+	expectedPieces[BLACK_PAWN] = (1ull << A7) | (1ull << B7) | (1ull << C7) | (1ull << D7) |
+	                             (1ull << E7) | (1ull << F7) | (1ull << G7) | (1ull << H7);
+	expectedPieces[BLACK_ROOK] = (1ull << A8) | (1ull << H8);
+	expectedPieces[BLACK_KNIGHT] = (1ull << B8) | (1ull << G8);
+	expectedPieces[BLACK_BISHOP] = (1ull << C8) | (1ull << F8);
+	expectedPieces[BLACK_QUEEN] = 1ull << D8;
+	expectedPieces[BLACK_KING] = 1ull << E8;
+
+	set_from_FEN(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+	for (i = 0; i < NUM_PIECES; ++i)
+	{
+		ck_assert(expectedPieces[i] == board.pieces[i]);
+	}
+
+	ck_assert(board.sides[WHITE] == (expectedPieces[WHITE_PAWN] |
+	                                 expectedPieces[WHITE_ROOK] |
+	                                 expectedPieces[WHITE_KNIGHT] |
+	                                 expectedPieces[WHITE_BISHOP] |
+	                                 expectedPieces[WHITE_QUEEN] |
+	                                 expectedPieces[WHITE_KING]));
+	ck_assert(board.sides[BLACK] == (expectedPieces[BLACK_PAWN] |
+	                                 expectedPieces[BLACK_ROOK] |
+	                                 expectedPieces[BLACK_KNIGHT] |
+	                                 expectedPieces[BLACK_BISHOP] |
+	                                 expectedPieces[BLACK_QUEEN] |
+	                                 expectedPieces[BLACK_KING]));
+
+	ck_assert(board.occupied == (expectedPieces[WHITE_PAWN] |
+	                             expectedPieces[WHITE_ROOK] |
+	                             expectedPieces[WHITE_KNIGHT] |
+	                             expectedPieces[WHITE_BISHOP] |
+	                             expectedPieces[WHITE_QUEEN] |
+	                             expectedPieces[WHITE_KING] |
+	                             expectedPieces[BLACK_PAWN] |
+	                             expectedPieces[BLACK_ROOK] |
+	                             expectedPieces[BLACK_KNIGHT] |
+	                             expectedPieces[BLACK_BISHOP] |
+	                             expectedPieces[BLACK_QUEEN] |
+	                             expectedPieces[BLACK_KING]));
+	ck_assert(board.occupied == ~board.empty);
+
+	ck_assert(0 == board.enPassant);
+
+	ck_assert(board.sideToMove == WHITE);
+

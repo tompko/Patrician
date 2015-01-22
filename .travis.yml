@@ -1,4 +1,4 @@
 language: c
-script: scons && bin/Patrician -p data/perft.epd
+script: scons test && scons && bin/Patrician -p data/perft.epd
 compiler: gcc
 

@@ -116,6 +116,57 @@ Move make_move_from_san(struct Board* board, const char* moveStr)
 	const char *sanMove = moveStr;
 	unsigned int promotion = 0, special_0 = 0, special_1 = 0;
 
+	if (!strcmp(moveStr, "0-0") || !strcmp(moveStr, "O-O"))
+	{
+		if (board->sideToMove == WHITE)
+		{
+			return move_pack_move(E1,
+		                          G1,
+		                          WHITE_KING,
+		                          0,
+		                          0,
+		                          0,
+		                          0,
+		                          1);
+		}
+		else
+		{
+			return move_pack_move(E1,
+		                          G1,
+		                          BLACK_KING,
+		                          0,
+		                          0,
+		                          0,
+		                          0,
+		                          1);
+		}
+	}
+	else if (!strcmp(moveStr, "0-0-0") || !strcmp(moveStr, "O-O-O"))
+	{
+		if (board->sideToMove == WHITE)
+		{
+			return move_pack_move(E1,
+			                      C1,
+			                      WHITE_KING,
+			                      0,
+			                      0,
+			                      0,
+			                      1,
+			                      1);
+		}
+		else
+		{
+			return move_pack_move(E1,
+			                      C1,
+			                      BLACK_KING,
+			                      0,
+			                      0,
+			                      0,
+			                      1,
+			                      1);
+		}
+	}
+
 	while(*moveStr)
 	{
 		switch (*moveStr)

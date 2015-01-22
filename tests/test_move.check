@@ -1,0 +1,231 @@
+#include "move.h"
+#include "board.h"
+
+#suite MoveSuite
+
+#tcase make_move_from_san
+
+#test san_quiet_move
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	move = make_move_from_san(&board, "e3");
+
+	ck_assert(move == move_pack_move(E2,
+	                                 E3,
+	                                 WHITE_PAWN,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0));
+
+#test san_capture
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1");
+	move = make_move_from_san(&board, "Nxh6");
+
+	ck_assert(move == move_pack_move(G4,
+	                                 H6,
+	                                 WHITE_KNIGHT,
+	                                 BLACK_PAWN,
+	                                 1,
+	                                 0,
+	                                 0,
+	                                 0));
+
+#test san_promotion
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "8/PPPk4/8/8/8/8/4Kppp/8 w - - 0 1");
+	move = make_move_from_san(&board, "a8Q");
+
+	ck_assert(move == move_pack_move(A7,
+	                                 A8,
+	                                 WHITE_PAWN,
+	                                 0,
+	                                 0,
+	                                 1,
+	                                 1,
+	                                 1));
+
+#test san_castle
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "8/k7/8/8/8/8/8/R3K2R w - - 0 1");
+	move = make_move_from_san(&board, "0-0");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 G1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1));
+
+	move = make_move_from_san(&board, "O-O");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 G1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1));
+
+	move = make_move_from_san(&board, "0-0-0");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 C1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1,
+	                                 1));
+
+	move = make_move_from_san(&board, "O-O-O");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 C1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1,
+	                                 1));
+
+#tcase make_move_from_str
+
+#test str_quiet_move
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	move = make_move_from_str(&board, "e2e3");
+
+	ck_assert(move == move_pack_move(E2,
+	                                 E3,
+	                                 WHITE_PAWN,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0));
+
+#test str_capture
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "r3qb1k/1b4p1/p2pr2p/3n4/Pnp1N1N1/6RP/1B3PP1/1B1QR1K1 w - - 0 1");
+	move = make_move_from_str(&board, "g4h6");
+
+	ck_assert(move == move_pack_move(G4,
+	                                 H6,
+	                                 WHITE_KNIGHT,
+	                                 BLACK_PAWN,
+	                                 1,
+	                                 0,
+	                                 0,
+	                                 0));
+
+#test str_promotion
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "8/PPPk4/8/8/8/8/4Kppp/8 w - - 0 1");
+	move = make_move_from_str(&board, "a7a8Q");
+
+	ck_assert(move == move_pack_move(A7,
+	                                 A8,
+	                                 WHITE_PAWN,
+	                                 0,
+	                                 0,
+	                                 1,
+	                                 1,
+	                                 1));
+
+#test str_castle
+	Board board;
+	Move move;
+
+	set_from_FEN(&board, "8/k7/8/8/8/8/8/R3K2R w - - 0 1");
+	move = make_move_from_str(&board, "e1g1");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 G1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1));
+
+	move = make_move_from_str(&board, "e1c1");
+
+	ck_assert(move == move_pack_move(E1,
+	                                 C1,
+	                                 WHITE_KING,
+	                                 0,
+	                                 0,
+	                                 0,
+	                                 1,
+	                                 1));
+
+#tcase sprint_move
+
+#test print_move
+	Move move;
+	char moveStr[16];
+
+	move = move_pack_move(E2,
+	                      E4,
+	                      WHITE_PAWN,
+	                      0,
+	                      0,
+	                      0,
+	                      0,
+	                      1);
+	sprint_move(moveStr, move);
+
+	ck_assert_str_eq("e2e4", moveStr);
+
+#tcase pack_unpack_move
+
+#test unpack_unpacks_pack
+	Move move;
+	unsigned int from, to, piece, capturedPiece, capture, promotion, special0, special1;
+
+	move = move_pack_move(E2, E4, WHITE_PAWN, 0, 0, 1, 0, 1);
+	move_unpack_move(move, &from, &to, &piece, &capturedPiece, &capture, &promotion, &special0, &special1);
+
+	ck_assert_uint_eq(from, E2);
+	ck_assert_uint_eq(to, E4);
+	ck_assert_uint_eq(piece, WHITE_PAWN);
+	ck_assert_uint_eq(capturedPiece, 0);
+	ck_assert_uint_eq(capture, 0);
+	ck_assert_uint_eq(promotion, 1);
+	ck_assert_uint_eq(special0, 0);
+	ck_assert_uint_eq(special1, 1);
+
+#test getters
+	Move move;
+
+	move = move_pack_move(E2, E4, WHITE_PAWN, 0, 0, 1, 0, 1);
+
+	ck_assert_uint_eq(move_get_from(move), E2);
+	ck_assert_uint_eq(move_get_to(move), E4);
+	ck_assert_uint_eq(move_get_piece(move), WHITE_PAWN);
+	ck_assert_uint_eq(move_get_capturedPiece(move), 0);
+	ck_assert_uint_eq(move_get_capture(move), 0);
+	ck_assert_uint_eq(move_get_promotion(move), 1);
+	ck_assert_uint_eq(move_get_special_0(move), 0);
+	ck_assert_uint_eq(move_get_special_1(move), 1);
+
