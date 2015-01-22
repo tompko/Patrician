@@ -1,4 +1,7 @@
 language: c
-script: scons && bin/Patrician -p test/perft.epd
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y check
+script: scons test && scons && bin/Patrician -p data/perft.epd
 compiler: gcc
 
