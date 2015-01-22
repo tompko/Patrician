@@ -195,7 +195,7 @@
 	                      1);
 	sprint_move(moveStr, move);
 
-	ck_assert_str_eq("e2e4", moveStr);
+	ck_assert(!strcmp("e2e4", moveStr));
 
 #tcase pack_unpack_move
 
@@ -206,26 +206,26 @@
 	move = move_pack_move(E2, E4, WHITE_PAWN, 0, 0, 1, 0, 1);
 	move_unpack_move(move, &from, &to, &piece, &capturedPiece, &capture, &promotion, &special0, &special1);
 
-	ck_assert_uint_eq(from, E2);
-	ck_assert_uint_eq(to, E4);
-	ck_assert_uint_eq(piece, WHITE_PAWN);
-	ck_assert_uint_eq(capturedPiece, 0);
-	ck_assert_uint_eq(capture, 0);
-	ck_assert_uint_eq(promotion, 1);
-	ck_assert_uint_eq(special0, 0);
-	ck_assert_uint_eq(special1, 1);
+	ck_assert(from == E2);
+	ck_assert(to == E4);
+	ck_assert(piece == WHITE_PAWN);
+	ck_assert(capturedPiece == 0);
+	ck_assert(capture == 0);
+	ck_assert(promotion == 1);
+	ck_assert(special0 == 0);
+	ck_assert(special1 == 1);
 
 #test getters
 	Move move;
 
 	move = move_pack_move(E2, E4, WHITE_PAWN, 0, 0, 1, 0, 1);
 
-	ck_assert_uint_eq(move_get_from(move), E2);
-	ck_assert_uint_eq(move_get_to(move), E4);
-	ck_assert_uint_eq(move_get_piece(move), WHITE_PAWN);
-	ck_assert_uint_eq(move_get_capturedPiece(move), 0);
-	ck_assert_uint_eq(move_get_capture(move), 0);
-	ck_assert_uint_eq(move_get_promotion(move), 1);
-	ck_assert_uint_eq(move_get_special_0(move), 0);
-	ck_assert_uint_eq(move_get_special_1(move), 1);
+	ck_assert(move_get_from(move) == E2);
+	ck_assert(move_get_to(move) == E4);
+	ck_assert(move_get_piece(move) == WHITE_PAWN);
+	ck_assert(move_get_capturedPiece(move) == 0);
+	ck_assert(move_get_capture(move) == 0);
+	ck_assert(move_get_promotion(move) == 1);
+	ck_assert(move_get_special_0(move) == 0);
+	ck_assert(move_get_special_1(move) == 1);
 
