@@ -5,7 +5,7 @@ import subprocess
 def create_objs(environ, sources):
     return [environ.Object(s) for s in sources]
 
-check_bld = Builder(action='checkmk < $SOURCE > $TARGET')
+check_bld = Builder(action='tests/checkmk < $SOURCE > $TARGET')
 
 def builder_unit_test(target, source, env):
     app = str(source[0].abspath)
